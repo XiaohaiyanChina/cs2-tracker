@@ -17,31 +17,26 @@ let _cacheTime = 0;
 
 async function readDB() {
   const now = Date.now();
-  if (_cache && (now - _cacheTime) < 3000) {
+  if (_cache && (now - _cacheTime) < 5000) {
     return JSON.parse(JSON.stringify(_cache));
   }
 
-  // Try GitHub API first if token available (returns fresh data)
+  // With token: use GitHub API exclusively (always fresh, no CDN staleness)
   if (TOKEN) {
-    try {
-      const apiRes = await fetch(API_URL, {
-        headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'cs2-tracker', 'Accept': 'application/vnd.github+json' },
-      });
-      if (apiRes.ok) {
-        const { content } = await apiRes.json();
-        if (content) {
-          const decoded = Buffer.from(content, 'base64').toString('utf-8');
-          const data = JSON.parse(decoded);
-          _cache = data;
-          _cacheTime = now;
-          return JSON.parse(JSON.stringify(data));
-        }
-      }
-    } catch { /* fall through */ }
+    const apiRes = await fetch(API_URL, {
+      headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'cs2-tracker', 'Accept': 'application/vnd.github+json' },
+    });
+    if (!apiRes.ok) throw new Error(`Read failed: ${apiRes.status}`);
+    const { content } = await apiRes.json();
+    if (!content) throw new Error('Empty content from GitHub API');
+    const data = JSON.parse(Buffer.from(content, 'base64').toString('utf-8'));
+    _cache = data;
+    _cacheTime = now;
+    return JSON.parse(JSON.stringify(data));
   }
 
-  // Fallback to raw URL
-  const res = await fetch(RAW_URL, { headers: { 'User-Agent': 'cs2-tracker' } });
+  // No token: raw URL with cache-busting (CDN may still be slightly stale)
+  const res = await fetch(`${RAW_URL}?t=${now}`, { headers: { 'User-Agent': 'cs2-tracker' } });
   if (!res.ok) throw new Error(`Read failed: ${res.status}`);
   const data = await res.json();
   _cache = data;

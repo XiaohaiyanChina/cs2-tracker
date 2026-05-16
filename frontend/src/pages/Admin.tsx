@@ -141,7 +141,7 @@ export default function Admin() {
 
 /* ============ TOURNAMENT EDITOR ============ */
 function TournamentEditor({ onMsg }: { onMsg: (s: string) => void }) {
-  const { data: tournaments } = useTournaments();
+  const { data: tournaments, refresh: refreshTournaments } = useTournaments();
   const { data: teams } = useTeams();
   const [name, setName] = useState('');
   const [desc, setDesc] = useState('');
@@ -163,12 +163,13 @@ function TournamentEditor({ onMsg }: { onMsg: (s: string) => void }) {
         teams: selTeams,
       }),
     });
-    if (res.ok) { onMsg(`赛事 "${name}" 已创建`); setName(''); setDesc(''); setSelTeams([]); }
+    if (res.ok) { onMsg(`赛事 "${name}" 已创建`); setName(''); setDesc(''); setSelTeams([]); refreshTournaments(); }
   };
 
   const remove = async (id: string) => {
     if (!confirm('确定删除此赛事？')) return;
     await fetch(`${API_BASE}/tournaments/${id}`, { method: 'DELETE' });
+    refreshTournaments();
     onMsg('赛事已删除');
   };
 
@@ -177,6 +178,7 @@ function TournamentEditor({ onMsg }: { onMsg: (s: string) => void }) {
     for (const id of selected) {
       await fetch(`${API_BASE}/tournaments/${id}`, { method: 'DELETE' });
     }
+    refreshTournaments();
     onMsg(`已删除 ${selected.length} 个赛事`);
     setSelected([]);
   };
@@ -256,7 +258,7 @@ function TournamentEditor({ onMsg }: { onMsg: (s: string) => void }) {
 
 /* ============ TEAM EDITOR ============ */
 function TeamEditor({ onMsg }: { onMsg: (s: string) => void }) {
-  const { data: teams } = useTeams();
+  const { data: teams, refresh: refreshTeams } = useTeams();
   const { data: players } = usePlayers();
   const [name, setName] = useState('');
   const [tag, setTag] = useState('');
@@ -285,6 +287,7 @@ function TeamEditor({ onMsg }: { onMsg: (s: string) => void }) {
     const method = editId ? 'PUT' : 'POST';
     const url = editId ? `${API_BASE}/teams/${editId}` : `${API_BASE}/teams`;
     await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    refreshTeams();
     onMsg(editId ? `战队 "${name}" 已更新` : `战队 "${name}" 已创建`);
     reset();
   };
@@ -297,6 +300,7 @@ function TeamEditor({ onMsg }: { onMsg: (s: string) => void }) {
   const remove = async (id: string) => {
     if (!confirm('确定删除此战队？选手数据将保留')) return;
     await fetch(`${API_BASE}/teams/${id}`, { method: 'DELETE' });
+    refreshTeams();
     onMsg('战队已删除（选手数据保留）');
   };
 
@@ -305,6 +309,7 @@ function TeamEditor({ onMsg }: { onMsg: (s: string) => void }) {
     for (const id of selected) {
       await fetch(`${API_BASE}/teams/${id}`, { method: 'DELETE' });
     }
+    refreshTeams();
     onMsg(`已删除 ${selected.length} 个战队`);
     setSelected([]);
   };
@@ -329,6 +334,7 @@ function TeamEditor({ onMsg }: { onMsg: (s: string) => void }) {
     const ach: Achievement = { id: 'ach_' + Date.now(), teamId, tournamentName: achTournament, placement: achPlacement as Achievement['placement'], date: new Date().toISOString().split('T')[0] };
     const updated = { ...team, achievements: [...(team.achievements || []), ach] };
     await fetch(`${API_BASE}/teams/${teamId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated) });
+    refreshTeams();
     onMsg('成就已添加');
     setAchTournament('');
   };
@@ -338,6 +344,7 @@ function TeamEditor({ onMsg }: { onMsg: (s: string) => void }) {
     if (!team) return;
     const updated = { ...team, achievements: team.achievements.filter(a => a.id !== achId) };
     await fetch(`${API_BASE}/teams/${teamId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated) });
+    refreshTeams();
     onMsg('成就已移除');
   };
 
@@ -451,8 +458,8 @@ function TeamEditor({ onMsg }: { onMsg: (s: string) => void }) {
 
 /* ============ PLAYER EDITOR ============ */
 function PlayerEditor({ onMsg }: { onMsg: (s: string) => void }) {
-  const { data: players } = usePlayers();
-  const { data: teams } = useTeams();
+  const { data: players, refresh: refreshPlayers } = usePlayers();
+  const { data: teams, refresh: refreshTeams } = useTeams();
 
   const [editId, setEditId] = useState<string | null>(null);
   const [nickname, setNickname] = useState('');
@@ -502,6 +509,8 @@ function PlayerEditor({ onMsg }: { onMsg: (s: string) => void }) {
           await fetch(`${API_BASE}/teams/${t.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...t, coach: null }) });
         }
       }
+      refreshPlayers();
+      if (editId) refreshTeams();
       onMsg(editId ? `选手 "${nickname}" 已更新` : `选手 "${nickname}" 已创建`);
       reset();
     }
@@ -522,6 +531,8 @@ function PlayerEditor({ onMsg }: { onMsg: (s: string) => void }) {
       await fetch(`${API_BASE}/teams/${t.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated) });
     }
     await fetch(`${API_BASE}/players/${id}`, { method: 'DELETE' });
+    refreshPlayers();
+    refreshTeams();
     onMsg('选手已删除，相关战队已更新');
   };
 
@@ -535,6 +546,8 @@ function PlayerEditor({ onMsg }: { onMsg: (s: string) => void }) {
       }
       await fetch(`${API_BASE}/players/${id}`, { method: 'DELETE' });
     }
+    refreshPlayers();
+    refreshTeams();
     onMsg(`已删除 ${selected.length} 个选手`);
     setSelected([]);
   };
@@ -631,11 +644,11 @@ function PlayerEditor({ onMsg }: { onMsg: (s: string) => void }) {
 /* ============ MATCH EDITOR ============ */
 function MatchEditor({ onMsg }: { onMsg: (s: string) => void }) {
   const { data: tournaments } = useTournaments();
-  const { data: teams } = useTeams();
+  const { data: teams, refresh: refreshTeams } = useTeams();
   const { data: players } = usePlayers();
-  const { data: matches } = useMatches();
-  const { data: allMaps } = useMatchMaps();
-  const { data: allStats } = useMatchStats();
+  const { data: matches, refresh: refreshMatches } = useMatches();
+  const { data: allMaps, refresh: refreshMaps } = useMatchMaps();
+  const { data: allStats, refresh: refreshStats } = useMatchStats();
 
   const [tournamentId, setTournamentId] = useState('');
   const [teamAId, setTeamAId] = useState('');
@@ -669,6 +682,7 @@ function MatchEditor({ onMsg }: { onMsg: (s: string) => void }) {
       }
       await fetch(`${API_BASE}/matches/${id}`, { method: 'DELETE' });
     }
+    refreshMatches(); refreshMaps(); refreshStats();
     onMsg(`已删除 ${selectedMatches.length} 场比赛`);
     setSelectedMatches([]);
   };
@@ -729,6 +743,8 @@ function MatchEditor({ onMsg }: { onMsg: (s: string) => void }) {
       });
     }
 
+    refreshMatches();
+    refreshTeams();
     onMsg(`比赛已录入！ELO: ${teamA.name} ${changeA > 0 ? '+' : ''}${changeA}, ${teamB.name} ${changeB > 0 ? '+' : ''}${changeB}`);
     setScoreA(0); setScoreB(0);
   };
@@ -753,6 +769,7 @@ function MatchEditor({ onMsg }: { onMsg: (s: string) => void }) {
     await fetch(`${API_BASE}/matchStats`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
     });
+    refreshStats();
     onMsg('选手数据已添加');
     setEditingStat(null);
   };
@@ -760,6 +777,7 @@ function MatchEditor({ onMsg }: { onMsg: (s: string) => void }) {
   const deleteStat = async (statId: string) => {
     if (!confirm('确定删除此数据？')) return;
     await fetch(`${API_BASE}/matchStats/${statId}`, { method: 'DELETE' });
+    refreshStats();
     onMsg('数据已删除');
   };
 

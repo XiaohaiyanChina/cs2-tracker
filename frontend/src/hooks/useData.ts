@@ -1,20 +1,26 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Player, Team, Tournament, Match, MatchMap, MatchStat, News } from '../types';
 import { API_BASE } from '../utils/config';
 
 function useFetch<T>(path: string) {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
+  const [key, setKey] = useState(0);
 
   useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
     fetch(`${API_BASE}${path}`)
       .then(r => r.json())
-      .then(setData)
+      .then(d => { if (!cancelled) setData(d); })
       .catch(console.error)
-      .finally(() => setLoading(false));
-  }, [path]);
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [path, key]);
 
-  return { data, loading };
+  const refresh = useCallback(() => setKey(k => k + 1), []);
+
+  return { data, loading, refresh };
 }
 
 export function usePlayers() { return useFetch<Player[]>('/players'); }
