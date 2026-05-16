@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { usePlayers, useTeams, useTournaments, useMatches, useMatchMaps, useMatchStats } from '../hooks/useData';
 import { API_BASE } from '../utils/config';
 import { calcEloChange, initialElo } from '../utils/elo';
-import { generateDoubleElimBracket } from '../utils/bracket';
+import { generateBracket } from '../utils/bracket';
 import { logout } from '../utils/auth';
+import BracketView from '../components/BracketView';
 import ImageUpload from '../components/ImageUpload';
 import { Settings, Trophy, Users, Gamepad2, Swords, Save, Plus, Trash2, CheckCircle, X, ChevronDown, ChevronUp, LogOut, Download, Upload, Square, CheckSquare, Loader2, ExternalLink } from 'lucide-react';
-import type { PlayerAttributes, Achievement, PlayerHonor } from '../types';
+import type { PlayerAttributes, Achievement, PlayerHonor, BracketSlot, Match } from '../types';
 
 function Spinner() {
   return (
@@ -31,13 +32,14 @@ function BatchDeleteBar({ selected, onDelete, onClear }: { selected: string[]; o
   );
 }
 
-type TabType = 'tournaments' | 'teams' | 'players' | 'matches';
+type TabType = 'tournaments' | 'teams' | 'players' | 'matches' | 'bracket';
 
 const TABS: { key: TabType; icon: typeof Trophy; label: string }[] = [
   { key: 'tournaments', icon: Trophy, label: '赛事管理' },
   { key: 'teams', icon: Users, label: '战队管理' },
   { key: 'players', icon: Gamepad2, label: '选手管理' },
   { key: 'matches', icon: Swords, label: '比赛录入' },
+  { key: 'bracket', icon: Trophy, label: '对阵图编辑' },
 ];
 
 export default function Admin() {
@@ -144,6 +146,7 @@ export default function Admin() {
       <div style={{ display: tab === 'teams' ? 'block' : 'none' }}><TeamEditor onMsg={setMsg} /></div>
       <div style={{ display: tab === 'players' ? 'block' : 'none' }}><PlayerEditor onMsg={setMsg} /></div>
       <div style={{ display: tab === 'matches' ? 'block' : 'none' }}><MatchEditor onMsg={setMsg} /></div>
+      <div style={{ display: tab === 'bracket' ? 'block' : 'none' }}><BracketEditor onMsg={setMsg} /></div>
     </div>
   );
 }
@@ -155,6 +158,7 @@ function TournamentEditor({ onMsg }: { onMsg: (s: string) => void }) {
   const [name, setName] = useState('');
   const [desc, setDesc] = useState('');
   const [format, setFormat] = useState<string>('single-elim');
+  const [bracketType, setBracketType] = useState<string>('');
   const [status, setStatus] = useState<string>('upcoming');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -170,8 +174,12 @@ function TournamentEditor({ onMsg }: { onMsg: (s: string) => void }) {
       endDate: endDate || new Date().toISOString().split('T')[0],
       teams: selTeams,
     };
-    if (format === 'double-elim' && selTeams.length >= 4) {
-      body.bracketSlots = generateDoubleElimBracket(tid, selTeams);
+    if (bracketType && selTeams.length >= 4) {
+      body.bracketType = bracketType;
+      body.bracketSlots = generateBracket(bracketType as any, tid, selTeams);
+    } else if (format === 'double-elim' && selTeams.length >= 4) {
+      body.bracketType = '4_double';
+      body.bracketSlots = generateBracket('4_double', tid, selTeams);
     }
     const res = await fetch(`${API_BASE}/tournaments`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -218,6 +226,12 @@ function TournamentEditor({ onMsg }: { onMsg: (s: string) => void }) {
           <select value={format} onChange={e => setFormat(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm">
             <option value="single-elim">单败淘汰</option><option value="double-elim">双败淘汰</option>
             <option value="round-robin">循环赛</option><option value="groups">小组赛+淘汰</option>
+          </select>
+          <select value={bracketType} onChange={e => setBracketType(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm">
+            <option value="">对阵图类型（可选）</option>
+            <option value="4_single">4队单淘</option>
+            <option value="4_double">4队双淘</option>
+            <option value="8_single">8队单淘</option>
           </select>
           <input placeholder="描述" value={desc} onChange={e => setDesc(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-primary outline-none sm:col-span-2" />
           <select value={status} onChange={e => setStatus(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm">
@@ -1129,6 +1143,249 @@ function MatchEditor({ onMsg }: { onMsg: (s: string) => void }) {
         </div>
           )}
       </div>
+    </div>
+  );
+}
+
+/* ============ BRACKET EDITOR ============ */
+function BracketEditor({ onMsg }: { onMsg: (s: string) => void }) {
+  const { data: tournaments, refresh: refreshTournaments } = useTournaments();
+  const { data: teams } = useTeams();
+  const { data: allMatches, refresh: refreshMatches } = useMatches();
+
+  const [tournamentId, setTournamentId] = useState('');
+  const [bracketType, setBracketType] = useState<string>('');
+  const [editingSlotId, setEditingSlotId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({ date: '', teamAId: '', teamBId: '', scoreA: '', scoreB: '' });
+
+  const tournament = tournaments?.find(t => t.id === tournamentId) || null;
+  const slots = tournament?.bracketSlots || [];
+  const currentType = tournament?.bracketType || bracketType;
+
+  const slotMatches = useMemo(() => {
+    const map = new Map<string, Match | null>();
+    slots.forEach((s: BracketSlot) => { map.set(s.id, s.matchId ? (allMatches?.find(m => m.id === s.matchId) || null) : null); });
+    return map;
+  }, [slots, allMatches]);
+
+  const selectTournament = (tid: string) => {
+    setTournamentId(tid);
+    const t = tournaments?.find(x => x.id === tid);
+    setBracketType(t?.bracketType || '');
+  };
+
+  const generateSlots = async () => {
+    if (!tournament || !bracketType || tournament.teams.length < 4) {
+      return alert('请选择对阵图类型，且赛事需要至少4支队伍');
+    }
+    const newSlots = generateBracket(bracketType as any, tournament.id, tournament.teams);
+    await fetch(`${API_BASE}/tournaments/${tournamentId}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...tournament, bracketType, bracketSlots: newSlots }),
+    });
+    refreshTournaments();
+    onMsg(`对阵图已生成 (${bracketType === '4_single' ? '4队单淘' : bracketType === '4_double' ? '4队双淘' : '8队单淘'})`);
+  };
+
+  const startEditSlot = (slot: BracketSlot) => {
+    const m = slotMatches.get(slot.id) ?? null;
+    const a = m?.teamAId || slot.teamAId || '';
+    const b = m?.teamBId || slot.teamBId || '';
+    setEditingSlotId(slot.id);
+    setEditForm({
+      date: m?.date ? new Date(m.date).toISOString().slice(0, 16) : '',
+      teamAId: a, teamBId: b,
+      scoreA: m ? String(m.scoreA) : '',
+      scoreB: m ? String(m.scoreB) : '',
+    });
+  };
+
+  const saveSlotMatch = async (slot: BracketSlot) => {
+    if (!tournament) return;
+    const now = new Date().toISOString();
+    let matchId = slot.matchId;
+
+    if (matchId) {
+      const match = allMatches?.find(m => m.id === matchId);
+      if (match) {
+        const newStatus = (editForm.scoreA || editForm.scoreB) ? 'finished' as const : 'upcoming' as const;
+        const updated = { ...match, date: editForm.date || match.date, teamAId: editForm.teamAId || match.teamAId, teamBId: editForm.teamBId || match.teamBId, scoreA: editForm.scoreA ? parseInt(editForm.scoreA) : match.scoreA, scoreB: editForm.scoreB ? parseInt(editForm.scoreB) : match.scoreB, status: newStatus };
+        await fetch(`${API_BASE}/matches/${matchId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated) });
+        if (newStatus === 'finished' && match.status !== 'finished') {
+          const teamA = teams?.find(t => t.id === updated.teamAId);
+          const teamB = teams?.find(t => t.id === updated.teamBId);
+          if (teamA && teamB) {
+            const scoreA = updated.scoreA > updated.scoreB ? 1 : 0;
+            const { changeA } = calcEloChange(teamA.elo, teamB.elo, scoreA);
+            await fetch(`${API_BASE}/teams/${teamA.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...teamA, elo: teamA.elo + changeA }) });
+            await fetch(`${API_BASE}/teams/${teamB.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...teamB, elo: teamB.elo - changeA }) });
+          }
+        }
+      }
+    } else {
+      matchId = `match_${Date.now()}`;
+      const isFinished = !!(editForm.scoreA && editForm.scoreB);
+      await fetch(`${API_BASE}/matches`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: matchId, tournamentId: tournamentId || '', teamAId: editForm.teamAId, teamBId: editForm.teamBId, scoreA: parseInt(editForm.scoreA) || 0, scoreB: parseInt(editForm.scoreB) || 0, date: editForm.date || now, status: isFinished ? 'finished' : 'upcoming', format: 'bo3', mapIds: [], eloChangeA: 0, eloChangeB: 0 }),
+      });
+      if (isFinished) {
+        const teamA = teams?.find(t => t.id === editForm.teamAId);
+        const teamB = teams?.find(t => t.id === editForm.teamBId);
+        if (teamA && teamB) {
+          const score = parseInt(editForm.scoreA) > parseInt(editForm.scoreB) ? 1 : 0;
+          const { changeA } = calcEloChange(teamA.elo, teamB.elo, score);
+          await fetch(`${API_BASE}/teams/${teamA.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...teamA, elo: teamA.elo + changeA }) });
+          await fetch(`${API_BASE}/teams/${teamB.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...teamB, elo: teamB.elo - changeA }) });
+        }
+      }
+    }
+
+    const updatedSlots = slots.map((s: BracketSlot) => s.id === slot.id ? { ...s, matchId } : s);
+    await fetch(`${API_BASE}/tournaments/${tournamentId}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...tournament, bracketSlots: updatedSlots }),
+    });
+    setEditingSlotId(null);
+    refreshMatches();
+    refreshTournaments();
+    onMsg('比赛已保存');
+  };
+
+  const deleteSlotMatch = async (slot: BracketSlot) => {
+    if (!tournament || !slot.matchId || !confirm('确定移除此比赛？')) return;
+    await fetch(`${API_BASE}/matches/${slot.matchId}`, { method: 'DELETE' });
+    const updatedSlots = slots.map((s: BracketSlot) => s.id === slot.id ? { ...s, matchId: null } : s);
+    await fetch(`${API_BASE}/tournaments/${tournamentId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...tournament, bracketSlots: updatedSlots }) });
+    refreshMatches();
+    refreshTournaments();
+    onMsg('比赛已移除');
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Select Tournament & Bracket Type */}
+      <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-4">
+        <h3 className="font-semibold text-gray-900">对阵图编辑</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <select value={tournamentId} onChange={e => selectTournament(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm">
+            <option value="">选择赛事</option>
+            {tournaments?.map(t => <option key={t.id} value={t.id}>{t.name} ({t.teams?.length || 0}队)</option>)}
+          </select>
+          <select value={bracketType} onChange={e => setBracketType(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm">
+            <option value="">选择对阵图类型</option>
+            <option value="4_single">4队单淘 (3场)</option>
+            <option value="4_double">4队双淘 (6场)</option>
+            <option value="8_single">8队单淘 (7场)</option>
+          </select>
+          <button onClick={generateSlots} disabled={!tournamentId || !bracketType}
+            className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed hover:bg-primary-dark transition-colors">
+            生成/重新生成对阵图
+          </button>
+        </div>
+        {currentType && (
+          <p className="text-xs text-gray-400">
+            当前类型：{currentType === '4_single' ? '4队单淘' : currentType === '4_double' ? '4队双淘' : currentType === '8_single' ? '8队单淘' : currentType}
+            {slots.length > 0 && ` · ${slots.length} 个槽位`}
+          </p>
+        )}
+      </div>
+
+      {/* Slot Cards with Edit Buttons */}
+      {slots.length > 0 && tournament && (
+        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-4">
+          <h3 className="font-semibold text-gray-900">槽位编辑</h3>
+          <p className="text-xs text-gray-400">点击编辑按钮为每个槽位关联比赛和队伍</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {slots.map(s => {
+              const m = slotMatches.get(s.id) ?? null;
+              const teamA = teams?.find(t => t.id === (m?.teamAId || s.teamAId));
+              const teamB = teams?.find(t => t.id === (m?.teamBId || s.teamBId));
+              return (
+                <div key={s.id} className="border border-gray-200 rounded-lg p-3 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded ${
+                      s.round.startsWith('ub') ? 'bg-green-100 text-green-700' :
+                      s.round.startsWith('lb') ? 'bg-amber-100 text-amber-700' :
+                      'bg-primary/10 text-primary'
+                    }`}>{s.label}</span>
+                    <div className="flex gap-1">
+                      <button onClick={() => startEditSlot(s)} className="px-2 py-0.5 text-xs bg-green-50 text-green-600 border border-green-200 rounded hover:bg-green-100">编辑</button>
+                      {s.matchId && <button onClick={() => deleteSlotMatch(s)} className="px-2 py-0.5 text-xs bg-red-50 text-red-500 border border-red-200 rounded hover:bg-red-100">清除</button>}
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-600">
+                    <div>{teamA?.name || 'TBD'} {m ? `(${m.scoreA}:${m.scoreB})` : ''} vs {teamB?.name || 'TBD'}</div>
+                    {m && <div className="text-gray-400">{new Date(m.date).toLocaleString('zh-CN')} · {m.status === 'finished' ? '已结束' : '预告'}</div>}
+                    {!m && <div className="text-gray-300">未关联比赛</div>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Bracket Preview */}
+          <div className="border-t border-gray-200 pt-4 mt-4">
+            <h4 className="font-semibold text-gray-900 mb-3">对阵图预览</h4>
+            <BracketView slots={slots} allMatches={allMatches || []} teams={teams || []} editable onEditSlot={startEditSlot} onDeleteSlot={deleteSlotMatch} />
+          </div>
+        </div>
+      )}
+
+      {(!tournamentId || slots.length === 0) && (
+        <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm text-center text-gray-400 text-sm">
+          请先选择赛事和对阵图类型，然后点击"生成对阵图"
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {editingSlotId && (() => {
+        const slot = slots.find((s: BracketSlot) => s.id === editingSlotId);
+        if (!slot) return null;
+        return (
+          <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center" onClick={() => setEditingSlotId(null)}>
+            <div className="bg-white rounded-xl p-6 shadow-xl w-full max-w-md mx-4" onClick={e => e.stopPropagation()}>
+              <h3 className="font-semibold text-gray-900 mb-4">编辑 {slot.label}</h3>
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs text-gray-500 block mb-1">比赛时间</label>
+                  <input type="datetime-local" value={editForm.date} onChange={e => setEditForm({ ...editForm, date: e.target.value })} className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full focus:border-primary outline-none" />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-xs text-gray-500 block mb-1">队伍 A</label>
+                    <select value={editForm.teamAId} onChange={e => setEditForm({ ...editForm, teamAId: e.target.value })} className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full focus:border-primary outline-none">
+                      <option value="">选择队伍</option>
+                      {tournament?.teams?.map((tid: string) => { const t = teams?.find(x => x.id === tid); return t ? <option key={tid} value={tid}>{t.name}</option> : null; })}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500 block mb-1">队伍 B</label>
+                    <select value={editForm.teamBId} onChange={e => setEditForm({ ...editForm, teamBId: e.target.value })} className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full focus:border-primary outline-none">
+                      <option value="">选择队伍</option>
+                      {tournament?.teams?.map((tid: string) => { const t = teams?.find(x => x.id === tid); return t ? <option key={tid} value={tid}>{t.name}</option> : null; })}
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-xs text-gray-500 block mb-1">比分 A</label>
+                    <input type="number" min="0" max="3" value={editForm.scoreA} onChange={e => setEditForm({ ...editForm, scoreA: e.target.value })} className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full focus:border-primary outline-none" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-500 block mb-1">比分 B</label>
+                    <input type="number" min="0" max="3" value={editForm.scoreB} onChange={e => setEditForm({ ...editForm, scoreB: e.target.value })} className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full focus:border-primary outline-none" />
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-2 mt-4 justify-end">
+                <button onClick={() => setEditingSlotId(null)} className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm"><X className="w-4 h-4 inline mr-1" />取消</button>
+                <button onClick={() => saveSlotMatch(slot)} className="px-4 py-2 bg-primary text-white rounded-lg text-sm"><Save className="w-4 h-4 inline mr-1" />保存</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
