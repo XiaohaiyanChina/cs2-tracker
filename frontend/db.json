@@ -1,27 +1,6 @@
 {
   "players": [
     {
-      "id": "p13",
-      "nickname": "apEX",
-      "avatar": "",
-      "realName": "Dan Madesclaire",
-      "age": 30,
-      "gender": "男",
-      "steamId": "STEAM_1:0:333333",
-      "isCoach": true,
-      "attributes": {
-        "rating30": 52,
-        "firepower": 55,
-        "entrying": 62,
-        "trading": 58,
-        "opening": 60,
-        "clutching": 48,
-        "sniping": 32,
-        "utility": 85
-      },
-      "createdAt": "2025-01-15"
-    },
-    {
       "id": "p14",
       "nickname": "Spinx",
       "avatar": "",
