@@ -221,7 +221,9 @@
       "date": "2026-05-17T00:07",
       "status": "upcoming",
       "format": "bo3",
-      "mapIds": [],
+      "mapIds": [
+        "mm_match_1778947679840_1778949616148"
+      ],
       "eloChangeA": 0,
       "eloChangeB": 0
     },
