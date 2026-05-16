@@ -222,7 +222,8 @@
       "status": "upcoming",
       "format": "bo3",
       "mapIds": [
-        "mm_match_1778947679840_1778949616148"
+        "mm_match_1778947679840_1778949616148",
+        "mm_match_1778947679840_1778949636513"
       ],
       "eloChangeA": 0,
       "eloChangeB": 0
