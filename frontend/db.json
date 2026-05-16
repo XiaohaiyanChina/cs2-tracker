@@ -598,25 +598,6 @@
   ],
   "tournaments": [
     {
-      "id": "tour4",
-      "name": "ESL Pro League S21",
-      "status": "ongoing",
-      "startDate": "2025-03-01",
-      "endDate": "2025-03-16",
-      "format": "round-robin",
-      "teams": [
-        "t1",
-        "t2",
-        "t3",
-        "t4",
-        "t5",
-        "t6",
-        "t7",
-        "t8"
-      ],
-      "description": "ESL Pro League Season 21"
-    },
-    {
       "id": "tour5",
       "name": "朋友杯 S1",
       "status": "upcoming",
