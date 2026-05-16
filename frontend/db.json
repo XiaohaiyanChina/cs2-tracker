@@ -1,27 +1,6 @@
 {
   "players": [
     {
-      "id": "p11",
-      "nickname": "karrigan",
-      "avatar": "",
-      "realName": "Finn Andersen",
-      "age": 33,
-      "gender": "男",
-      "steamId": "STEAM_1:0:111111",
-      "isCoach": true,
-      "attributes": {
-        "rating30": 48,
-        "firepower": 45,
-        "entrying": 40,
-        "trading": 55,
-        "opening": 38,
-        "clutching": 50,
-        "sniping": 30,
-        "utility": 88
-      },
-      "createdAt": "2025-01-10"
-    },
-    {
       "id": "p12",
       "nickname": "rain",
       "avatar": "",
