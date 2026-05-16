@@ -5,8 +5,22 @@ import { API_BASE } from '../utils/config';
 import { calcEloChange, initialElo } from '../utils/elo';
 import { logout } from '../utils/auth';
 import ImageUpload from '../components/ImageUpload';
-import { Settings, Trophy, Users, Gamepad2, Swords, Save, Plus, Trash2, CheckCircle, X, ChevronDown, ChevronUp, LogOut, Download, Upload } from 'lucide-react';
+import { Settings, Trophy, Users, Gamepad2, Swords, Save, Plus, Trash2, CheckCircle, X, ChevronDown, ChevronUp, LogOut, Download, Upload, Square, CheckSquare } from 'lucide-react';
 import type { PlayerAttributes, Achievement } from '../types';
+
+function BatchDeleteBar({ selected, onDelete, onClear }: { selected: string[]; onDelete: () => void; onClear: () => void }) {
+  if (selected.length === 0) return null;
+  return (
+    <div className="flex items-center gap-3 px-4 py-2 bg-red-50 border border-red-200 rounded-lg">
+      <span className="text-sm text-red-700 font-medium">已选 {selected.length} 项</span>
+      <div className="flex-1" />
+      <button onClick={onClear} className="text-xs text-gray-500 hover:underline">取消</button>
+      <button onClick={onDelete} className="flex items-center gap-1 px-3 py-1 bg-red-500 text-white rounded text-xs font-medium hover:bg-red-600">
+        <Trash2 className="w-3 h-3" /> 批量删除
+      </button>
+    </div>
+  );
+}
 
 type TabType = 'tournaments' | 'teams' | 'players' | 'matches';
 
@@ -136,6 +150,7 @@ function TournamentEditor({ onMsg }: { onMsg: (s: string) => void }) {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [selTeams, setSelTeams] = useState<string[]>([]);
+  const [selected, setSelected] = useState<string[]>([]);
 
   const create = async () => {
     if (!name.trim()) return alert('请输入赛事名称');
@@ -155,6 +170,24 @@ function TournamentEditor({ onMsg }: { onMsg: (s: string) => void }) {
     if (!confirm('确定删除此赛事？')) return;
     await fetch(`${API_BASE}/tournaments/${id}`, { method: 'DELETE' });
     onMsg('赛事已删除');
+  };
+
+  const batchRemove = async () => {
+    if (!confirm(`确定批量删除 ${selected.length} 个赛事？`)) return;
+    for (const id of selected) {
+      await fetch(`${API_BASE}/tournaments/${id}`, { method: 'DELETE' });
+    }
+    onMsg(`已删除 ${selected.length} 个赛事`);
+    setSelected([]);
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelected(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
+  };
+
+  const selectAll = () => {
+    if (!tournaments) return;
+    setSelected(selected.length === tournaments.length ? [] : tournaments.map(t => t.id));
   };
 
   return (
@@ -193,12 +226,20 @@ function TournamentEditor({ onMsg }: { onMsg: (s: string) => void }) {
       </div>
 
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-        <div className="p-4 border-b border-gray-200"><h3 className="font-semibold text-gray-900">现有赛事 ({tournaments?.length || 0})</h3></div>
+        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+          <h3 className="font-semibold text-gray-900">现有赛事 ({tournaments?.length || 0})</h3>
+          <button onClick={selectAll} className="text-xs text-gray-400 hover:text-primary flex items-center gap-1">
+            {selected.length === (tournaments?.length || 0) && tournaments!.length > 0 ? <CheckSquare className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />}
+            全选
+          </button>
+        </div>
+        <BatchDeleteBar selected={selected} onDelete={batchRemove} onClear={() => setSelected([])} />
         <table className="data-table">
-          <thead><tr><th>名称</th><th>状态</th><th>日期</th><th>队伍</th><th className="w-16"></th></tr></thead>
+          <thead><tr><th className="w-8"></th><th>名称</th><th>状态</th><th>日期</th><th>队伍</th><th className="w-16"></th></tr></thead>
           <tbody>
             {tournaments?.map(t => (
               <tr key={t.id}>
+                <td><button onClick={() => toggleSelect(t.id)} className="text-gray-300 hover:text-primary">{selected.includes(t.id) ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}</button></td>
                 <td className="font-medium text-gray-900">{t.name}</td>
                 <td><span className={`text-xs px-2 py-0.5 rounded ${t.status === 'ongoing' ? 'bg-green-100 text-green-700' : t.status === 'upcoming' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>{t.status === 'ongoing' ? '进行中' : t.status === 'upcoming' ? '即将' : '已结束'}</span></td>
                 <td className="text-gray-500 text-sm">{t.startDate} ~ {t.endDate}</td>
@@ -225,6 +266,7 @@ function TeamEditor({ onMsg }: { onMsg: (s: string) => void }) {
   const [editId, setEditId] = useState<string | null>(null);
   const [achTournament, setAchTournament] = useState('');
   const [achPlacement, setAchPlacement] = useState<string>('冠军');
+  const [selected, setSelected] = useState<string[]>([]);
 
   const reset = () => { setName(''); setTag(''); setLogo(''); setSelMembers([]); setCoach(''); setEditId(null); };
 
@@ -256,6 +298,24 @@ function TeamEditor({ onMsg }: { onMsg: (s: string) => void }) {
     if (!confirm('确定删除此战队？选手数据将保留')) return;
     await fetch(`${API_BASE}/teams/${id}`, { method: 'DELETE' });
     onMsg('战队已删除（选手数据保留）');
+  };
+
+  const batchRemove = async () => {
+    if (!confirm(`确定批量删除 ${selected.length} 个战队？选手数据将保留`)) return;
+    for (const id of selected) {
+      await fetch(`${API_BASE}/teams/${id}`, { method: 'DELETE' });
+    }
+    onMsg(`已删除 ${selected.length} 个战队`);
+    setSelected([]);
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelected(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
+  };
+
+  const selectAll = () => {
+    if (!teams) return;
+    setSelected(selected.length === teams.length ? [] : teams.map(t => t.id));
   };
 
   const toggleMember = (pid: string) => {
@@ -327,11 +387,21 @@ function TeamEditor({ onMsg }: { onMsg: (s: string) => void }) {
 
       {/* Team List */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-        <div className="p-4 border-b border-gray-200"><h3 className="font-semibold text-gray-900">现有战队 ({teams?.length || 0})</h3></div>
+        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+          <h3 className="font-semibold text-gray-900">现有战队 ({teams?.length || 0})</h3>
+          <button onClick={selectAll} className="text-xs text-gray-400 hover:text-primary flex items-center gap-1">
+            {selected.length === (teams?.length || 0) && teams!.length > 0 ? <CheckSquare className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />}
+            全选
+          </button>
+        </div>
+        <BatchDeleteBar selected={selected} onDelete={batchRemove} onClear={() => setSelected([])} />
         {teams?.map(t => (
           <div key={t.id} className="border-b border-gray-100 p-4 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
+                <button onClick={() => toggleSelect(t.id)} className="text-gray-300 hover:text-primary shrink-0">
+                  {selected.includes(t.id) ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}
+                </button>
                 {t.logo ? <img src={t.logo} alt="" className="w-10 h-10 rounded-full object-cover" /> : <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">{t.tag?.charAt(0)}</div>}
                 <div>
                   <span className="font-semibold text-gray-900">{t.name}</span>
@@ -391,6 +461,7 @@ function PlayerEditor({ onMsg }: { onMsg: (s: string) => void }) {
   const [gender, setGender] = useState<string>('');
   const [avatar, setAvatar] = useState('');
   const [isCoach, setIsCoach] = useState(false);
+  const [selected, setSelected] = useState<string[]>([]);
   const [attrs, setAttrs] = useState<PlayerAttributes>({
     rating30: 80, firepower: 75, entrying: 70, trading: 72, opening: 68, clutching: 74, sniping: 65, utility: 70,
   });
@@ -454,6 +525,29 @@ function PlayerEditor({ onMsg }: { onMsg: (s: string) => void }) {
     onMsg('选手已删除，相关战队已更新');
   };
 
+  const batchRemove = async () => {
+    if (!confirm(`确定批量删除 ${selected.length} 个选手？将从所有战队中移除`)) return;
+    for (const id of selected) {
+      const affectedTeams = teams?.filter(t => t.members?.includes(id) || t.coach === id) || [];
+      for (const t of affectedTeams) {
+        const updated = { ...t, members: (t.members || []).filter(x => x !== id), coach: t.coach === id ? null : t.coach };
+        await fetch(`${API_BASE}/teams/${t.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated) });
+      }
+      await fetch(`${API_BASE}/players/${id}`, { method: 'DELETE' });
+    }
+    onMsg(`已删除 ${selected.length} 个选手`);
+    setSelected([]);
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelected(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
+  };
+
+  const selectAll = () => {
+    if (!players) return;
+    setSelected(selected.length === players.length ? [] : players.map(p => p.id));
+  };
+
   return (
     <div className="space-y-6">
       {/* Form */}
@@ -499,12 +593,20 @@ function PlayerEditor({ onMsg }: { onMsg: (s: string) => void }) {
 
       {/* Player list */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-        <div className="p-4 border-b border-gray-200"><h3 className="font-semibold text-gray-900">现有选手 ({players?.length || 0})</h3></div>
+        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+          <h3 className="font-semibold text-gray-900">现有选手 ({players?.length || 0})</h3>
+          <button onClick={selectAll} className="text-xs text-gray-400 hover:text-primary flex items-center gap-1">
+            {selected.length === (players?.length || 0) && players!.length > 0 ? <CheckSquare className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />}
+            全选
+          </button>
+        </div>
+        <BatchDeleteBar selected={selected} onDelete={batchRemove} onClear={() => setSelected([])} />
         <table className="data-table">
-          <thead><tr><th>照片</th><th>昵称</th><th>姓名</th><th>年龄</th><th>类型</th><th className="w-16"></th></tr></thead>
+          <thead><tr><th className="w-8"></th><th>照片</th><th>昵称</th><th>姓名</th><th>年龄</th><th>类型</th><th className="w-16"></th></tr></thead>
           <tbody>
             {players?.map(p => (
               <tr key={p.id}>
+                <td><button onClick={() => toggleSelect(p.id)} className="text-gray-300 hover:text-primary">{selected.includes(p.id) ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}</button></td>
                 <td>
                   {p.avatar ? <img src={p.avatar} alt="" className="w-8 h-8 rounded-full object-cover" />
                     : <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs text-gray-400">{p.nickname.charAt(0)}</div>}
@@ -552,6 +654,33 @@ function MatchEditor({ onMsg }: { onMsg: (s: string) => void }) {
   const mapOptions = ['Mirage', 'Inferno', 'Nuke', 'Ancient', 'Anubis', 'Vertigo', 'Dust2', 'Overpass', 'Train'];
 
   const sortedMatches = matches?.slice().sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) || [];
+  const [selectedMatches, setSelectedMatches] = useState<string[]>([]);
+
+  const batchRemoveMatches = async () => {
+    if (!confirm(`确定批量删除 ${selectedMatches.length} 场比赛？将同时删除相关地图和数据`)) return;
+    for (const id of selectedMatches) {
+      const matchMaps = (allMaps || []).filter(mm => matches?.find(m => m.id === id)?.mapIds?.includes(mm.id));
+      for (const mm of matchMaps) {
+        const stats = (allStats || []).filter(s => s.matchMapId === mm.id);
+        for (const s of stats) {
+          await fetch(`${API_BASE}/matchStats/${s.id}`, { method: 'DELETE' });
+        }
+        await fetch(`${API_BASE}/matchMaps/${mm.id}`, { method: 'DELETE' });
+      }
+      await fetch(`${API_BASE}/matches/${id}`, { method: 'DELETE' });
+    }
+    onMsg(`已删除 ${selectedMatches.length} 场比赛`);
+    setSelectedMatches([]);
+  };
+
+  const toggleMatchSelect = (id: string) => {
+    setSelectedMatches(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
+  };
+
+  const selectAllMatches = () => {
+    if (!sortedMatches.length) return;
+    setSelectedMatches(selectedMatches.length === sortedMatches.length ? [] : sortedMatches.map(m => m.id));
+  };
 
   const getTeamPlayers = (matchId: string) => {
     const m = matches?.find(x => x.id === matchId);
@@ -564,7 +693,7 @@ function MatchEditor({ onMsg }: { onMsg: (s: string) => void }) {
     if (teamA?.coach) all.add(teamA.coach);
     if (teamB?.coach) all.add(teamB.coach);
     return Array.from(all);
-  };
+  }
 
   const create = async () => {
     if (!tournamentId || !teamAId || !teamBId) return alert('请填写所有必填项');
@@ -695,10 +824,17 @@ function MatchEditor({ onMsg }: { onMsg: (s: string) => void }) {
 
       {/* Existing Matches + Stats Editor */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-        <div className="p-4 border-b border-gray-200">
-          <h3 className="font-semibold text-gray-900">比赛数据编辑 ({sortedMatches.length} 场)</h3>
-          <p className="text-xs text-gray-400 mt-0.5">展开比赛 → 展开地图 → 添加/编辑选手数据</p>
+        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+          <div>
+            <h3 className="font-semibold text-gray-900">比赛数据编辑 ({sortedMatches.length} 场)</h3>
+            <p className="text-xs text-gray-400 mt-0.5">展开比赛 → 展开地图 → 添加/编辑选手数据</p>
+          </div>
+          <button onClick={selectAllMatches} className="text-xs text-gray-400 hover:text-primary flex items-center gap-1 shrink-0">
+            {selectedMatches.length === sortedMatches.length && sortedMatches.length > 0 ? <CheckSquare className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />}
+            全选
+          </button>
         </div>
+        <BatchDeleteBar selected={selectedMatches} onDelete={batchRemoveMatches} onClear={() => setSelectedMatches([])} />
         <div className="divide-y divide-gray-100">
           {sortedMatches.map(m => {
             const isExpanded = expandMatchId === m.id;
@@ -711,15 +847,20 @@ function MatchEditor({ onMsg }: { onMsg: (s: string) => void }) {
             return (
               <div key={m.id}>
                 {/* Match Row */}
-                <div
-                  onClick={() => setExpandMatchId(isExpanded ? null : m.id)}
-                  className="flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-50 transition-colors"
-                >
-                  {isExpanded ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
-                  <span className="text-xs text-gray-400 w-20 shrink-0">{new Date(m.date).toLocaleDateString('zh-CN')}</span>
-                  <span className="text-sm font-medium text-gray-900">{teamA?.name || '?'} <span className="text-xs text-gray-500">{m.scoreA}:{m.scoreB}</span> {teamB?.name || '?'}</span>
-                  <span className="text-xs text-gray-400">[{m.format.toUpperCase()}]</span>
-                  <span className="text-xs text-gray-400">{tournament?.name}</span>
+                <div className="flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors">
+                  <button onClick={(e) => { e.stopPropagation(); toggleMatchSelect(m.id); }} className="text-gray-300 hover:text-primary shrink-0">
+                    {selectedMatches.includes(m.id) ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}
+                  </button>
+                  <div
+                    onClick={() => setExpandMatchId(isExpanded ? null : m.id)}
+                    className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
+                  >
+                    {isExpanded ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+                    <span className="text-xs text-gray-400 w-20 shrink-0">{new Date(m.date).toLocaleDateString('zh-CN')}</span>
+                    <span className="text-sm font-medium text-gray-900 min-w-0 truncate">{teamA?.name || '?'} <span className="text-xs text-gray-500">{m.scoreA}:{m.scoreB}</span> {teamB?.name || '?'}</span>
+                    <span className="text-xs text-gray-400 shrink-0">[{m.format.toUpperCase()}]</span>
+                    <span className="text-xs text-gray-400 shrink-0">{tournament?.name}</span>
+                  </div>
                 </div>
 
                 {/* Expanded: Maps */}
