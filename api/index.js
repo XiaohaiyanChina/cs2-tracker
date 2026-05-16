@@ -1,5 +1,5 @@
-// Vercel serverless API — single self-contained file
-// Handles /api/players, /api/teams, etc. with GitHub as data store
+// Vercel serverless API — all /api/* requests rewrite here
+// Parses the original URL to determine endpoint
 
 const OWNER = process.env.GITHUB_REPO_OWNER || 'XiaohaiyanChina';
 const REPO = process.env.GITHUB_REPO_NAME || 'cs2-tracker';
@@ -12,30 +12,23 @@ const API_URL = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${DB_FIL
 
 const COLLECTIONS = ['players', 'teams', 'tournaments', 'matches', 'matchMaps', 'matchStats', 'news'];
 
-// In-memory cache (per instance, short-lived on serverless)
 let _cache = null;
 let _cacheTime = 0;
 
 async function readDB() {
   const now = Date.now();
-  // Use cache if very fresh (handle rapid successive reads after write)
   if (_cache && (now - _cacheTime) < 3000) {
     return JSON.parse(JSON.stringify(_cache));
   }
 
-  // Try raw URL first (fast, no auth for public repos)
-  let res = await fetch(RAW_URL, { headers: { 'User-Agent': 'cs2-tracker' } });
-
-  // If auth token is set, use API for guaranteed fresh data
+  // Try GitHub API first if token available (returns fresh data)
   if (TOKEN) {
     try {
       const apiRes = await fetch(API_URL, {
         headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'cs2-tracker', 'Accept': 'application/vnd.github+json' },
       });
       if (apiRes.ok) {
-        const fileInfo = await apiRes.json();
-        const content = fileInfo.content;
-        // content is base64 encoded
+        const { content } = await apiRes.json();
         if (content) {
           const decoded = Buffer.from(content, 'base64').toString('utf-8');
           const data = JSON.parse(decoded);
@@ -44,9 +37,11 @@ async function readDB() {
           return JSON.parse(JSON.stringify(data));
         }
       }
-    } catch { /* fall through to raw URL */ }
+    } catch { /* fall through */ }
   }
 
+  // Fallback to raw URL
+  const res = await fetch(RAW_URL, { headers: { 'User-Agent': 'cs2-tracker' } });
   if (!res.ok) throw new Error(`Read failed: ${res.status}`);
   const data = await res.json();
   _cache = data;
@@ -79,17 +74,23 @@ async function writeDB(data) {
 
   _cache = data;
   _cacheTime = Date.now();
-  return data;
 }
 
-function parseRoute(segments) {
-  if (!segments || segments.length === 0) return { error: 'No route' };
-  const [first, second] = segments;
-  if (segments.length === 1) {
+// Parse URL path like /api/players/p1 → parts ['api', 'players', 'p1']
+function parsePath(url) {
+  const path = (url || '').split('?')[0];
+  const parts = path.split('/').filter(Boolean); // ['api', 'players'] or ['api', 'players', 'p1']
+  // First part should be 'api'
+  const afterApi = parts.slice(1); // ['players'] or ['players', 'p1']
+
+  if (afterApi.length === 0) return { error: 'No endpoint' };
+  const [first, second] = afterApi;
+
+  if (afterApi.length === 1) {
     if (COLLECTIONS.includes(first)) return { collection: first, id: null };
     return { special: first };
   }
-  if (segments.length === 2 && COLLECTIONS.includes(first)) {
+  if (afterApi.length === 2 && COLLECTIONS.includes(first)) {
     return { collection: first, id: second };
   }
   return { error: 'Invalid path' };
@@ -102,14 +103,9 @@ export default async function handler(req, res) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  // Vercel passes catch-all segments via req.query.route (array)
-  // Fallback: parse from URL path
-  let segments = req.query.route;
-  if (!segments || segments.length === 0) {
-    const path = req.url?.split('?')[0] || '';
-    segments = path.replace(/^\/api\//, '').split('/').filter(Boolean);
-  }
-  const parsed = parseRoute(segments);
+  // Use original URL (before rewrite) if available, otherwise use req.url
+  const url = req.url || '';
+  const parsed = parsePath(url);
 
   // --- Special endpoints ---
   if (parsed.special === 'status') {
