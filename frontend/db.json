@@ -423,31 +423,6 @@
   ],
   "teams": [
     {
-      "id": "t3",
-      "name": "G2 Esports",
-      "logo": "",
-      "tag": "G2",
-      "members": [
-        "p3",
-        "p4",
-        "p17",
-        "p2",
-        "p18"
-      ],
-      "coach": null,
-      "elo": 1050,
-      "achievements": [
-        {
-          "id": "a4",
-          "teamId": "t3",
-          "tournamentName": "周末娱乐赛 Week 1",
-          "placement": "亚军",
-          "date": "2025-02-23"
-        }
-      ],
-      "createdAt": "2025-01-20"
-    },
-    {
       "id": "t4",
       "name": "Team Spirit",
       "logo": "",
