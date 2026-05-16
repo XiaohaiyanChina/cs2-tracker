@@ -1367,20 +1367,6 @@
       "clutches": 0
     },
     {
-      "id": "s44",
-      "matchMapId": "map21",
-      "playerId": "p5",
-      "kills": 20,
-      "deaths": 20,
-      "assists": 5,
-      "adr": 78.4,
-      "rating": 1.05,
-      "kpr": 0.67,
-      "headshotPercent": 38,
-      "entryKills": 3,
-      "clutches": 0
-    },
-    {
       "id": "s45",
       "matchMapId": "map22",
       "playerId": "p2",
