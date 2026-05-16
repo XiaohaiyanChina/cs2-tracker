@@ -67,7 +67,17 @@
       "eloChangeB": -16
     }
   ],
-  "matchMaps": [],
+  "matchMaps": [
+    {
+      "id": "mm_match_1778939330805_0",
+      "matchId": "match_1778939330805",
+      "mapName": "Mirage",
+      "scoreA": 13,
+      "scoreB": 4,
+      "pickTeam": null,
+      "order": 1
+    }
+  ],
   "matchStats": [
     {
       "id": "s42",
