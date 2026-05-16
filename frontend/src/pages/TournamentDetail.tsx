@@ -27,13 +27,14 @@ function getLoser(match: Match | null | undefined): string | null {
 
 // --- Bracket Match Card ---
 function SlotCard({
-  slot, match, teamA, teamB, isAdmin, onEdit, onDelete,
+  slot, match, teamA, teamB, isAdmin, editMode, onEdit, onDelete,
 }: {
   slot: BracketSlot;
   match: Match | null;
   teamA: Team | null;
   teamB: Team | null;
   isAdmin: boolean;
+  editMode: boolean;
   onEdit: () => void;
   onDelete: () => void;
 }) {
@@ -78,10 +79,15 @@ function SlotCard({
           <div className="text-[10px] text-gray-300 text-center border-t border-gray-100 pt-1">待定</div>
         )}
       </div>
-      {isAdmin && (
-        <div className="absolute top-1 right-1 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+      {isAdmin && editMode && (
+        <div className="absolute top-1 right-1 flex gap-0.5 z-10">
+          <button onClick={onEdit} className="p-0.5 bg-white border border-green-300 rounded hover:bg-green-50" title="编辑"><Edit3 className="w-3 h-3 text-green-600" /></button>
+          {slot.matchId && <button onClick={onDelete} className="p-0.5 bg-white border border-red-300 rounded hover:bg-red-50" title="删除"><Trash2 className="w-3 h-3 text-red-400" /></button>}
+        </div>
+      )}
+      {isAdmin && !editMode && slot.round === 'ub_round1' && !match && (
+        <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
           <button onClick={onEdit} className="p-0.5 bg-white border border-gray-200 rounded hover:bg-gray-50" title="编辑"><Edit3 className="w-3 h-3 text-gray-400" /></button>
-          {slot.matchId && <button onClick={onDelete} className="p-0.5 bg-white border border-gray-200 rounded hover:bg-red-50" title="删除"><Trash2 className="w-3 h-3 text-red-400" /></button>}
         </div>
       )}
     </div>
@@ -222,9 +228,10 @@ export default function TournamentDetail() {
 
   const bracketRef = useRef<HTMLDivElement | null>(null);
   const [, setRefreshKey] = useState(0);
+  const [editMode, setEditMode] = useState(false);
 
   const saveBracketToTournament = async (slots: BracketSlot[]) => {
-    if (!tournament) return;
+    if (!isAdmin || !tournament) return;
     await fetch(`${API_BASE}/tournaments/${id}`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...tournament, bracketSlots: slots }),
@@ -232,6 +239,7 @@ export default function TournamentDetail() {
   };
 
   const startEditSlot = (slot: BracketSlot) => {
+    if (!isAdmin) return;
     const match = slotMatches.get(slot.id);
     const a = resolvedTeamA.get(slot.id);
     const b = resolvedTeamB.get(slot.id);
@@ -246,6 +254,7 @@ export default function TournamentDetail() {
   };
 
   const saveSlotMatch = async (slot: BracketSlot) => {
+    if (!isAdmin) return;
     const now = new Date().toISOString();
     let matchId = slot.matchId;
 
@@ -295,7 +304,7 @@ export default function TournamentDetail() {
   };
 
   const deleteSlotMatch = async (slot: BracketSlot) => {
-    if (!slot.matchId || !confirm('确定移除此比赛？')) return;
+    if (!isAdmin || !slot.matchId || !confirm('确定移除此比赛？')) return;
     await fetch(`${API_BASE}/matches/${slot.matchId}`, { method: 'DELETE' });
     const updatedSlots = bracketSlots.map(s => s.id === slot.id ? { ...s, matchId: null } : s);
     await saveBracketToTournament(updatedSlots);
@@ -304,6 +313,7 @@ export default function TournamentDetail() {
   };
 
   const addMatch = async () => {
+    if (!isAdmin) return;
     if (!newMatchForm.teamAId || !newMatchForm.teamBId || !newMatchForm.date) return alert('请填写完整信息');
     await fetch(`${API_BASE}/matches`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -315,7 +325,7 @@ export default function TournamentDetail() {
   };
 
   const deleteScheduleMatch = async (matchId: string) => {
-    if (!confirm('确定删除此比赛？')) return;
+    if (!isAdmin || !confirm('确定删除此比赛？')) return;
     await fetch(`${API_BASE}/matches/${matchId}`, { method: 'DELETE' });
     const slot = bracketSlots.find(s => s.matchId === matchId);
     if (slot) {
@@ -383,9 +393,22 @@ export default function TournamentDetail() {
       {/* Bracket Section */}
       {bracketSlots.length > 0 && (
         <div className="bg-white border border-gray-200 rounded-xl p-5 mb-6 shadow-sm">
-          <h2 className="font-semibold text-gray-900 flex items-center gap-2 mb-2">
-            <Trophy className="w-5 h-5 text-primary" /> 对阵图
-          </h2>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="font-semibold text-gray-900 flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-primary" /> 对阵图
+            </h2>
+            {isAdmin && (
+              <button
+                onClick={() => setEditMode(!editMode)}
+                className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${
+                  editMode ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600 hover:bg-primary/10 hover:text-primary'
+                }`}
+              >
+                <Edit3 className="w-3.5 h-3.5 inline mr-1" />
+                {editMode ? '退出编辑' : '编辑对阵图'}
+              </button>
+            )}
+          </div>
           <p className="text-xs text-gray-400 mb-4">赛制：4支队伍双败淘汰 — 输2场即淘汰，赢2场进总决赛</p>
 
           <div className="flex items-center gap-4 mb-3 text-xs">
@@ -425,7 +448,7 @@ export default function TournamentDetail() {
                 <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 170, display: 'flex', flexDirection: 'column', justifyContent: 'space-around' }}>
                   {col1.map(s => {
                     const m = slotMatches.get(s.id) ?? null;
-                    return <SlotCard key={s.id} slot={s} match={m} teamA={getTeam(resolvedTeamA.get(s.id))} teamB={getTeam(resolvedTeamB.get(s.id))} isAdmin={isAdmin} onEdit={() => startEditSlot(s)} onDelete={() => deleteSlotMatch(s)} />;
+                    return <SlotCard key={s.id} slot={s} match={m} teamA={getTeam(resolvedTeamA.get(s.id))} teamB={getTeam(resolvedTeamB.get(s.id))} isAdmin={isAdmin} editMode={editMode} onEdit={() => startEditSlot(s)} onDelete={() => deleteSlotMatch(s)} />;
                   })}
                 </div>
 
@@ -433,11 +456,11 @@ export default function TournamentDetail() {
                 <div style={{ position: 'absolute', left: 220, top: 0, bottom: 0, width: 170, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                   <div>{col2Top.map(s => {
                     const m = slotMatches.get(s.id) ?? null;
-                    return <SlotCard key={s.id} slot={s} match={m} teamA={getTeam(resolvedTeamA.get(s.id))} teamB={getTeam(resolvedTeamB.get(s.id))} isAdmin={isAdmin} onEdit={() => startEditSlot(s)} onDelete={() => deleteSlotMatch(s)} />;
+                    return <SlotCard key={s.id} slot={s} match={m} teamA={getTeam(resolvedTeamA.get(s.id))} teamB={getTeam(resolvedTeamB.get(s.id))} isAdmin={isAdmin} editMode={editMode} onEdit={() => startEditSlot(s)} onDelete={() => deleteSlotMatch(s)} />;
                   })}</div>
                   <div>{col2Bot.map(s => {
                     const m = slotMatches.get(s.id) ?? null;
-                    return <SlotCard key={s.id} slot={s} match={m} teamA={getTeam(resolvedTeamA.get(s.id))} teamB={getTeam(resolvedTeamB.get(s.id))} isAdmin={isAdmin} onEdit={() => startEditSlot(s)} onDelete={() => deleteSlotMatch(s)} />;
+                    return <SlotCard key={s.id} slot={s} match={m} teamA={getTeam(resolvedTeamA.get(s.id))} teamB={getTeam(resolvedTeamB.get(s.id))} isAdmin={isAdmin} editMode={editMode} onEdit={() => startEditSlot(s)} onDelete={() => deleteSlotMatch(s)} />;
                   })}</div>
                 </div>
 
@@ -445,7 +468,7 @@ export default function TournamentDetail() {
                 <div style={{ position: 'absolute', left: 440, top: 0, bottom: 0, width: 170, display: 'flex', alignItems: 'center' }}>
                   {col3.map(s => {
                     const m = slotMatches.get(s.id) ?? null;
-                    return <SlotCard key={s.id} slot={s} match={m} teamA={getTeam(resolvedTeamA.get(s.id))} teamB={getTeam(resolvedTeamB.get(s.id))} isAdmin={isAdmin} onEdit={() => startEditSlot(s)} onDelete={() => deleteSlotMatch(s)} />;
+                    return <SlotCard key={s.id} slot={s} match={m} teamA={getTeam(resolvedTeamA.get(s.id))} teamB={getTeam(resolvedTeamB.get(s.id))} isAdmin={isAdmin} editMode={editMode} onEdit={() => startEditSlot(s)} onDelete={() => deleteSlotMatch(s)} />;
                   })}
                 </div>
 
@@ -463,7 +486,7 @@ export default function TournamentDetail() {
                   </div>
                   {col4.map(s => {
                     const m = slotMatches.get(s.id) ?? null;
-                    return <SlotCard key={s.id} slot={s} match={m} teamA={getTeam(resolvedTeamA.get(s.id))} teamB={getTeam(resolvedTeamB.get(s.id))} isAdmin={isAdmin} onEdit={() => startEditSlot(s)} onDelete={() => deleteSlotMatch(s)} />;
+                    return <SlotCard key={s.id} slot={s} match={m} teamA={getTeam(resolvedTeamA.get(s.id))} teamB={getTeam(resolvedTeamB.get(s.id))} isAdmin={isAdmin} editMode={editMode} onEdit={() => startEditSlot(s)} onDelete={() => deleteSlotMatch(s)} />;
                   })}
                 </div>
 
