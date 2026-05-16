@@ -126,7 +126,7 @@
           "id": "slot_tour_1778947510958_semi_1",
           "round": "ub_semi",
           "label": "半决赛",
-          "matchId": null,
+          "matchId": "match_1778951293402",
           "teamAId": "team_1778947481959",
           "teamBId": "team_1778947486359",
           "nextWinSlotId": "slot_tour_1778947510958_final",
