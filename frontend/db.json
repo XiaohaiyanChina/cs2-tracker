@@ -1,27 +1,6 @@
 {
   "players": [
     {
-      "id": "p3",
-      "nickname": "NiKo",
-      "avatar": "",
-      "realName": "Nikola Kovač",
-      "age": 27,
-      "gender": "男",
-      "steamId": "STEAM_1:0:345678",
-      "isCoach": false,
-      "attributes": {
-        "rating30": 74,
-        "firepower": 90,
-        "entrying": 92,
-        "trading": 60,
-        "opening": 88,
-        "clutching": 65,
-        "sniping": 40,
-        "utility": 58
-      },
-      "createdAt": "2025-01-20"
-    },
-    {
       "id": "p4",
       "nickname": "m0NESY",
       "avatar": "",
