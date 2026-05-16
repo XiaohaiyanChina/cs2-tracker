@@ -209,6 +209,20 @@
       "mapIds": [],
       "eloChangeA": 0,
       "eloChangeB": 0
+    },
+    {
+      "id": "match_1778947679840",
+      "tournamentId": "tour_1778947510958",
+      "teamAId": "team_1778919358778",
+      "teamBId": "team_1778940016495",
+      "scoreA": 0,
+      "scoreB": 0,
+      "date": "2026-05-17T00:07",
+      "status": "upcoming",
+      "format": "bo3",
+      "mapIds": [],
+      "eloChangeA": 0,
+      "eloChangeB": 0
     }
   ],
   "matchMaps": [
