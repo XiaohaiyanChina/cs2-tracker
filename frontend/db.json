@@ -423,31 +423,6 @@
   ],
   "teams": [
     {
-      "id": "t4",
-      "name": "Team Spirit",
-      "logo": "",
-      "tag": "TS",
-      "members": [
-        "p5",
-        "p16",
-        "p19",
-        "p10",
-        "p20"
-      ],
-      "coach": null,
-      "elo": 1100,
-      "achievements": [
-        {
-          "id": "a5",
-          "teamId": "t4",
-          "tournamentName": "IEM Katowice 2025",
-          "placement": "亚军",
-          "date": "2025-02-09"
-        }
-      ],
-      "createdAt": "2025-02-01"
-    },
-    {
       "id": "t5",
       "name": "NAVI",
       "logo": "",
