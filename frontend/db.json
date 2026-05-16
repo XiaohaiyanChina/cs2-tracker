@@ -1,23 +1,23 @@
 {
   "players": [
     {
-      "id": "p4",
-      "nickname": "m0NESY",
+      "id": "p3",
+      "nickname": "NiKo",
       "avatar": "",
-      "realName": "Ilya Osipov",
-      "age": 19,
+      "realName": "Nikola Kovač",
+      "age": 27,
       "gender": "男",
-      "steamId": "STEAM_1:0:456789",
+      "steamId": "STEAM_1:0:345678",
       "isCoach": false,
       "attributes": {
-        "rating30": 72,
-        "firepower": 80,
-        "entrying": 70,
-        "trading": 62,
-        "opening": 72,
-        "clutching": 75,
-        "sniping": 95,
-        "utility": 68
+        "rating30": 74,
+        "firepower": 90,
+        "entrying": 92,
+        "trading": 60,
+        "opening": 88,
+        "clutching": 65,
+        "sniping": 40,
+        "utility": 58
       },
       "createdAt": "2025-01-20"
     },
