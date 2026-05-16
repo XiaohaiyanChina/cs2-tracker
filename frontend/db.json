@@ -257,6 +257,15 @@
       "scoreB": 0,
       "pickTeam": null,
       "order": 2
+    },
+    {
+      "id": "mm_match_1778951293402_1778951347626",
+      "matchId": "match_1778951293402",
+      "mapName": "Nuke",
+      "scoreA": 0,
+      "scoreB": 0,
+      "pickTeam": null,
+      "order": 2
     }
   ],
   "matchStats": [
