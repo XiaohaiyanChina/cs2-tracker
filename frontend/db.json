@@ -598,21 +598,6 @@
   ],
   "tournaments": [
     {
-      "id": "tour5",
-      "name": "朋友杯 S1",
-      "status": "upcoming",
-      "startDate": "2025-04-01",
-      "endDate": "2025-04-07",
-      "format": "single-elim",
-      "teams": [
-        "t1",
-        "t2",
-        "t3",
-        "t4"
-      ],
-      "description": "第一届朋友杯赛事"
-    },
-    {
       "id": "tour6",
       "name": "周末娱乐赛 Week 1",
       "status": "finished",
