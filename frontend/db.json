@@ -16,6 +16,13 @@
           "tournamentName": "圣杯S1",
           "placement": "冠军",
           "date": "2026-05-16"
+        },
+        {
+          "id": "ach_1778922011958",
+          "teamId": "team_1778919358778",
+          "tournamentName": "圣杯S2",
+          "placement": "冠军",
+          "date": "2026-05-16"
         }
       ],
       "createdAt": "2026-05-16"
