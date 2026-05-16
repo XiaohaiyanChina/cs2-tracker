@@ -1,0 +1,16 @@
+{
+  "name": "cs2-tracker",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "client": "cd frontend && npm run dev",
+    "server": "cd server && npm run dev",
+    "install:all": "cd frontend && npm install && cd ../server && npm install",
+    "build": "cd frontend && npm run build",
+    "sync:db": "cp frontend/db.json server/db.json",
+    "deploy": "npm run sync:db && fly deploy"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

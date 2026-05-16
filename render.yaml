@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: cs2-tracker
+    env: node
+    buildCommand: cd frontend && npm install && npm run build && cd ../server && npm install
+    startCommand: cd server && node index.js
+    envVars:
+      - key: PORT
+        value: "10000"
+      - key: DB_PATH
+        value: /opt/render/project/src/server/db.json
+      - key: NODE_ENV
+        value: production
