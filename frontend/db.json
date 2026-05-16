@@ -1,27 +1,6 @@
 {
   "players": [
     {
-      "id": "p2",
-      "nickname": "s1mple",
-      "avatar": "",
-      "realName": "Oleksandr Kostyliev",
-      "age": 26,
-      "gender": "男",
-      "steamId": "STEAM_1:0:234567",
-      "isCoach": false,
-      "attributes": {
-        "rating30": 76,
-        "firepower": 85,
-        "entrying": 75,
-        "trading": 65,
-        "opening": 78,
-        "clutching": 88,
-        "sniping": 92,
-        "utility": 75
-      },
-      "createdAt": "2025-01-15"
-    },
-    {
       "id": "p3",
       "nickname": "NiKo",
       "avatar": "",
