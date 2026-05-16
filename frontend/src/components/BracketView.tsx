@@ -79,7 +79,6 @@ function OrthoConnectors({ slots, containerRef }: { slots: BracketSlot[]; contai
     const seen = new Map<string, number>();
     slots.forEach(s => {
       if (s.nextWinSlotId) inboundCount.set(s.nextWinSlotId, (inboundCount.get(s.nextWinSlotId) || 0) + 1);
-      if (s.nextLoseSlotId) inboundCount.set(s.nextLoseSlotId, (inboundCount.get(s.nextLoseSlotId) || 0) + 1);
     });
 
     slots.forEach(slot => {
@@ -109,7 +108,6 @@ function OrthoConnectors({ slots, containerRef }: { slots: BracketSlot[]; contai
       };
 
       drawConn(slot.nextWinSlotId, '#16a34a', `${slot.id}_win`);
-      drawConn(slot.nextLoseSlotId, '#dc2626', `${slot.id}_lose`);
     });
 
     setPaths(newPaths);
@@ -130,13 +128,10 @@ function OrthoConnectors({ slots, containerRef }: { slots: BracketSlot[]; contai
         <marker id="arrowGreen" markerWidth="6" markerHeight="5" refX="5" refY="2.5" orient="auto">
           <path d="M0,0 L6,2.5 L0,5 Z" fill="#16a34a" />
         </marker>
-        <marker id="arrowRed" markerWidth="6" markerHeight="5" refX="5" refY="2.5" orient="auto">
-          <path d="M0,0 L6,2.5 L0,5 Z" fill="#dc2626" />
-        </marker>
       </defs>
       {paths.map(p => (
-        <path key={p.key} d={p.d} stroke={p.color} strokeWidth="1.5" fill="none" opacity="0.5"
-          markerEnd={p.color === '#16a34a' ? 'url(#arrowGreen)' : 'url(#arrowRed)'} />
+        <path key={p.key} d={p.d} stroke="#16a34a" strokeWidth="1.5" fill="none" opacity="0.4"
+          markerEnd="url(#arrowGreen)" />
       ))}
     </svg>
   );
