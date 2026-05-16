@@ -122,23 +122,6 @@
       "eloChangeB": 15
     },
     {
-      "id": "m7",
-      "tournamentId": "tour3",
-      "teamAId": "t1",
-      "teamBId": "t5",
-      "scoreA": 1,
-      "scoreB": 1,
-      "date": "2025-03-20T15:00:00",
-      "status": "live",
-      "format": "bo3",
-      "mapIds": [
-        "map17",
-        "map18"
-      ],
-      "eloChangeA": 0,
-      "eloChangeB": 0
-    },
-    {
       "id": "m10",
       "tournamentId": "tour4",
       "teamAId": "t5",
