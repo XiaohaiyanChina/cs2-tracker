@@ -318,23 +318,6 @@
   ],
   "teams": [
     {
-      "id": "t8",
-      "name": "Astralis",
-      "logo": "",
-      "tag": "AST",
-      "members": [
-        "p20",
-        "p17",
-        "p19",
-        "p11",
-        "p15"
-      ],
-      "coach": null,
-      "elo": 950,
-      "achievements": [],
-      "createdAt": "2025-03-01"
-    },
-    {
       "id": "team_1778919358778",
       "name": "Lucky Dog",
       "tag": "LD",
