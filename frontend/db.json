@@ -190,16 +190,12 @@
       "tournamentId": "tour_1778947510958",
       "teamAId": "team_1778947481959",
       "teamBId": "team_1778947486359",
-      "scoreA": 13,
-      "scoreB": 2,
-      "date": "2026-05-16T17:08:13.402Z",
+      "scoreA": 2,
+      "scoreB": 1,
+      "date": "2026-05-16T17:08",
       "status": "finished",
       "format": "bo3",
-      "mapIds": [
-        "mm_match_1778951293402_1778951330748",
-        "mm_match_1778951293402_1778951347626",
-        "mm_match_1778951293402_1778951356315"
-      ],
+      "mapIds": [],
       "eloChangeA": 0,
       "eloChangeB": 0
     }
