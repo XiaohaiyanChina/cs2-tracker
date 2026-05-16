@@ -1,27 +1,6 @@
 {
   "players": [
     {
-      "id": "p7",
-      "nickname": "Twistzz",
-      "avatar": "",
-      "realName": "Russel Van Dulken",
-      "age": 24,
-      "gender": "男",
-      "steamId": "STEAM_1:0:789012",
-      "isCoach": false,
-      "attributes": {
-        "rating30": 70,
-        "firepower": 78,
-        "entrying": 72,
-        "trading": 74,
-        "opening": 68,
-        "clutching": 60,
-        "sniping": 48,
-        "utility": 76
-      },
-      "createdAt": "2025-02-10"
-    },
-    {
       "id": "p8",
       "nickname": "broky",
       "avatar": "",
