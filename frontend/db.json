@@ -726,15 +726,6 @@
       "order": 2
     },
     {
-      "id": "map19",
-      "matchId": "m8",
-      "mapName": "Nuke",
-      "scoreA": 13,
-      "scoreB": 5,
-      "pickTeam": "t2",
-      "order": 1
-    },
-    {
       "id": "map20",
       "matchId": "m8",
       "mapName": "Overpass",
