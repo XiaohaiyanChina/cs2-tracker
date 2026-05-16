@@ -383,78 +383,93 @@ export default function TournamentDetail() {
       {/* Bracket Section */}
       {bracketSlots.length > 0 && (
         <div className="bg-white border border-gray-200 rounded-xl p-5 mb-6 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-gray-900 flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-primary" /> 对阵图
-            </h2>
-            <div className="flex items-center gap-4 text-xs">
-              <span className="flex items-center gap-1">
-                <span className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500" />
-                <span className="w-6 h-0.5 bg-green-500 rounded inline-block" />
-                <ArrowUpRight className="w-3 h-3 text-green-600" /> 胜者晋级
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500" />
-                <span className="w-6 h-0.5 bg-red-400 rounded inline-block" />
-                <ArrowDownRight className="w-3 h-3 text-red-500" /> 败者降级
-              </span>
-            </div>
+          <h2 className="font-semibold text-gray-900 flex items-center gap-2 mb-2">
+            <Trophy className="w-5 h-5 text-primary" /> 对阵图
+          </h2>
+          <p className="text-xs text-gray-400 mb-4">赛制：4支队伍双败淘汰 — 输2场即淘汰，赢2场进总决赛</p>
+
+          <div className="flex items-center gap-4 mb-3 text-xs">
+            <span className="flex items-center gap-1">
+              <span className="w-6 h-0.5 bg-green-500 rounded inline-block" />
+              <ArrowUpRight className="w-3 h-3 text-green-600" /> 胜者晋级
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="w-6 h-0.5 bg-red-400 rounded inline-block" />
+              <ArrowDownRight className="w-3 h-3 text-red-500" /> 败者降级
+            </span>
           </div>
 
           <div className="overflow-x-auto pb-2">
-            <div ref={bracketRef} style={{ minWidth: 820, height: 480, position: 'relative' }}>
-              {/* Column 1: UB Round 1 */}
-              <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 170, display: 'flex', flexDirection: 'column', justifyContent: 'space-around' }}>
-                {col1.map(s => {
-                  const m = slotMatches.get(s.id) ?? null;
-                  return <SlotCard key={s.id} slot={s} match={m} teamA={getTeam(resolvedTeamA.get(s.id))} teamB={getTeam(resolvedTeamB.get(s.id))} isAdmin={isAdmin} onEdit={() => startEditSlot(s)} onDelete={() => deleteSlotMatch(s)} />;
-                })}
+            <div style={{ minWidth: 840, position: 'relative' }}>
+              {/* Column Headers */}
+              <div style={{ display: 'flex', marginBottom: 12, paddingLeft: 0, height: 28 }}>
+                <div style={{ width: 170, textAlign: 'center' }}><span className="text-xs font-bold text-green-700 bg-green-50 border border-green-200 rounded-full px-3 py-1">4进2</span></div>
+                <div style={{ width: 50 }} />
+                <div style={{ width: 170, textAlign: 'center' }}>
+                  <div><span className="text-xs font-bold text-green-700 bg-green-50 border border-green-200 rounded-full px-3 py-1">胜者组决赛</span></div>
+                  <div style={{ marginTop: 140 }}><span className="text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200 rounded-full px-3 py-1">败者组第一轮</span></div>
+                </div>
+                <div style={{ width: 50 }} />
+                <div style={{ width: 170, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span className="text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200 rounded-full px-3 py-1">败者组决赛</span>
+                </div>
+                <div style={{ width: 50 }} />
+                <div style={{ width: 170, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span className="text-xs font-bold text-primary bg-primary/10 border border-primary/30 rounded-full px-3 py-1">总决赛</span>
+                </div>
               </div>
 
-              {/* Column 2: UB Final + LB R1 */}
-              <div style={{ position: 'absolute', left: 220, top: 0, bottom: 0, width: 170, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                <div style={{ paddingTop: 20 }}>
-                  {col2Top.map(s => {
+              {/* Bracket cards container */}
+              <div ref={bracketRef} style={{ height: 420, position: 'relative' }}>
+                {/* Column 1: UB Round 1 */}
+                <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 170, display: 'flex', flexDirection: 'column', justifyContent: 'space-around' }}>
+                  {col1.map(s => {
                     const m = slotMatches.get(s.id) ?? null;
                     return <SlotCard key={s.id} slot={s} match={m} teamA={getTeam(resolvedTeamA.get(s.id))} teamB={getTeam(resolvedTeamB.get(s.id))} isAdmin={isAdmin} onEdit={() => startEditSlot(s)} onDelete={() => deleteSlotMatch(s)} />;
                   })}
                 </div>
-                <div style={{ paddingBottom: 20 }}>
-                  {col2Bot.map(s => {
+
+                {/* Column 2: UB Final (top) + LB R1 (bottom) */}
+                <div style={{ position: 'absolute', left: 220, top: 0, bottom: 0, width: 170, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <div>{col2Top.map(s => {
+                    const m = slotMatches.get(s.id) ?? null;
+                    return <SlotCard key={s.id} slot={s} match={m} teamA={getTeam(resolvedTeamA.get(s.id))} teamB={getTeam(resolvedTeamB.get(s.id))} isAdmin={isAdmin} onEdit={() => startEditSlot(s)} onDelete={() => deleteSlotMatch(s)} />;
+                  })}</div>
+                  <div>{col2Bot.map(s => {
+                    const m = slotMatches.get(s.id) ?? null;
+                    return <SlotCard key={s.id} slot={s} match={m} teamA={getTeam(resolvedTeamA.get(s.id))} teamB={getTeam(resolvedTeamB.get(s.id))} isAdmin={isAdmin} onEdit={() => startEditSlot(s)} onDelete={() => deleteSlotMatch(s)} />;
+                  })}</div>
+                </div>
+
+                {/* Column 3: LB Final */}
+                <div style={{ position: 'absolute', left: 440, top: 0, bottom: 0, width: 170, display: 'flex', alignItems: 'center' }}>
+                  {col3.map(s => {
                     const m = slotMatches.get(s.id) ?? null;
                     return <SlotCard key={s.id} slot={s} match={m} teamA={getTeam(resolvedTeamA.get(s.id))} teamB={getTeam(resolvedTeamB.get(s.id))} isAdmin={isAdmin} onEdit={() => startEditSlot(s)} onDelete={() => deleteSlotMatch(s)} />;
                   })}
                 </div>
-              </div>
 
-              {/* Column 3: LB Final */}
-              <div style={{ position: 'absolute', left: 440, top: 0, bottom: 0, width: 170, display: 'flex', alignItems: 'center' }}>
-                {col3.map(s => {
-                  const m = slotMatches.get(s.id) ?? null;
-                  return <SlotCard key={s.id} slot={s} match={m} teamA={getTeam(resolvedTeamA.get(s.id))} teamB={getTeam(resolvedTeamB.get(s.id))} isAdmin={isAdmin} onEdit={() => startEditSlot(s)} onDelete={() => deleteSlotMatch(s)} />;
-                })}
-              </div>
-
-              {/* Column 4: Grand Final + Zone Labels */}
-              <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 170, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ position: 'absolute', top: 16, left: 0, right: 0, textAlign: 'center' }}>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-green-600 bg-green-50 border border-green-200 rounded-full px-3 py-1">
-                    <ArrowUpRight className="w-3 h-3" /> 晋级区
-                  </span>
+                {/* Column 4: Grand Final + Zones */}
+                <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 170, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ position: 'absolute', top: 8, left: 0, right: 0, textAlign: 'center' }}>
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-green-600 bg-green-50 border border-green-200 rounded-full px-2.5 py-0.5">
+                      <ArrowUpRight className="w-3 h-3" /> 晋级区
+                    </span>
+                  </div>
+                  <div style={{ position: 'absolute', bottom: 8, left: 0, right: 0, textAlign: 'center' }}>
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-500 bg-red-50 border border-red-200 rounded-full px-2.5 py-0.5">
+                      <ArrowDownRight className="w-3 h-3" /> 淘汰区
+                    </span>
+                  </div>
+                  {col4.map(s => {
+                    const m = slotMatches.get(s.id) ?? null;
+                    return <SlotCard key={s.id} slot={s} match={m} teamA={getTeam(resolvedTeamA.get(s.id))} teamB={getTeam(resolvedTeamB.get(s.id))} isAdmin={isAdmin} onEdit={() => startEditSlot(s)} onDelete={() => deleteSlotMatch(s)} />;
+                  })}
                 </div>
-                <div style={{ position: 'absolute', bottom: 16, left: 0, right: 0, textAlign: 'center' }}>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-red-500 bg-red-50 border border-red-200 rounded-full px-3 py-1">
-                    <ArrowDownRight className="w-3 h-3" /> 淘汰区
-                  </span>
-                </div>
-                {col4.map(s => {
-                  const m = slotMatches.get(s.id) ?? null;
-                  return <SlotCard key={s.id} slot={s} match={m} teamA={getTeam(resolvedTeamA.get(s.id))} teamB={getTeam(resolvedTeamB.get(s.id))} isAdmin={isAdmin} onEdit={() => startEditSlot(s)} onDelete={() => deleteSlotMatch(s)} />;
-                })}
-              </div>
 
-              {/* SVG Connectors */}
-              <BracketConnectors slots={bracketSlots} containerRef={bracketRef} />
+                {/* SVG Connectors */}
+                <BracketConnectors slots={bracketSlots} containerRef={bracketRef} />
+              </div>
             </div>
           </div>
         </div>

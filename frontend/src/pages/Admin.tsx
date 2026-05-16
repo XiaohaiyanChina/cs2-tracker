@@ -289,12 +289,13 @@ function TeamEditor({ onMsg }: { onMsg: (s: string) => void }) {
   const [logo, setLogo] = useState('');
   const [selMembers, setSelMembers] = useState<string[]>([]);
   const [coach, setCoach] = useState<string>('');
+  const [elo, setElo] = useState(initialElo());
   const [editId, setEditId] = useState<string | null>(null);
   const [achTournament, setAchTournament] = useState('');
   const [achPlacement, setAchPlacement] = useState<string>('冠军');
   const [selected, setSelected] = useState<string[]>([]);
 
-  const reset = () => { setName(''); setTag(''); setLogo(''); setSelMembers([]); setCoach(''); setEditId(null); };
+  const reset = () => { setName(''); setTag(''); setLogo(''); setSelMembers([]); setCoach(''); setElo(initialElo()); setEditId(null); };
 
   const availablePlayers = players?.filter(p => !p.isCoach) || [];
   const coachPlayers = players?.filter(p => p.isCoach) || [];
@@ -304,7 +305,7 @@ function TeamEditor({ onMsg }: { onMsg: (s: string) => void }) {
     const body = {
       id: editId || ('team_' + Date.now()),
       name: name.trim(), tag: tag.trim().toUpperCase(), logo,
-      members: selMembers, coach: coach || null, elo: initialElo(),
+      members: selMembers, coach: coach || null, elo: elo || initialElo(),
       achievements: [] as Achievement[],
       createdAt: new Date().toISOString().split('T')[0],
     };
@@ -318,7 +319,7 @@ function TeamEditor({ onMsg }: { onMsg: (s: string) => void }) {
 
   const startEdit = (t: typeof teams extends (infer U)[] | null ? U : never) => {
     setEditId(t.id); setName(t.name); setTag(t.tag); setLogo(t.logo || '');
-    setSelMembers(t.members || []); setCoach(t.coach || '');
+    setSelMembers(t.members || []); setCoach(t.coach || ''); setElo(t.elo || initialElo());
   };
 
   const remove = async (id: string) => {
@@ -385,6 +386,7 @@ function TeamEditor({ onMsg }: { onMsg: (s: string) => void }) {
           <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
             <input placeholder="战队名称" value={name} onChange={e => setName(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-primary outline-none" />
             <input placeholder="标签 (2-4字符)" value={tag} onChange={e => setTag(e.target.value)} maxLength={4} className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-primary outline-none uppercase" />
+            <input type="number" placeholder="ELO积分" value={elo} onChange={e => setElo(parseInt(e.target.value) || 0)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-primary outline-none" />
           </div>
         </div>
 

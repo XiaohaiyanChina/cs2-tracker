@@ -1,9 +1,10 @@
 import { NavLink } from 'react-router-dom';
-import { CalendarDays, Users, Gamepad2, Settings, Menu, X, Crosshair } from 'lucide-react';
+import { CalendarDays, Users, Gamepad2, Settings, Menu, X, Crosshair, Trophy } from 'lucide-react';
 import { useState } from 'react';
 
 const navItems = [
   { to: '/', icon: CalendarDays, label: '赛程中心' },
+  { to: '/tournaments', icon: Trophy, label: '赛事' },
   { to: '/teams', icon: Users, label: '战队' },
   { to: '/players', icon: Gamepad2, label: '选手' },
   { to: '/admin', icon: Settings, label: '管理员' },
