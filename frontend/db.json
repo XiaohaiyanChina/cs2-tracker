@@ -598,25 +598,6 @@
   ],
   "tournaments": [
     {
-      "id": "tour3",
-      "name": "PGL Major Copenhagen 2025",
-      "status": "ongoing",
-      "startDate": "2025-03-15",
-      "endDate": "2025-03-30",
-      "format": "groups",
-      "teams": [
-        "t1",
-        "t2",
-        "t3",
-        "t4",
-        "t5",
-        "t6",
-        "t7",
-        "t8"
-      ],
-      "description": "2025 first Major"
-    },
-    {
       "id": "tour4",
       "name": "ESL Pro League S21",
       "status": "ongoing",
