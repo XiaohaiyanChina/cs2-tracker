@@ -55,6 +55,17 @@
       "elo": 1016,
       "achievements": [],
       "createdAt": "2026-05-16"
+    },
+    {
+      "id": "team_1778947481959",
+      "name": "1234",
+      "tag": "12",
+      "logo": "",
+      "members": [],
+      "coach": null,
+      "elo": 1000,
+      "achievements": [],
+      "createdAt": "2026-05-16"
     }
   ],
   "tournaments": [
