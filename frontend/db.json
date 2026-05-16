@@ -598,23 +598,6 @@
   ],
   "tournaments": [
     {
-      "id": "tour2",
-      "name": "BLAST Premier Spring 2025",
-      "status": "finished",
-      "startDate": "2025-02-15",
-      "endDate": "2025-02-25",
-      "format": "groups",
-      "teams": [
-        "t1",
-        "t2",
-        "t3",
-        "t4",
-        "t5",
-        "t6"
-      ],
-      "description": "BLAST Premier Spring Group Stage"
-    },
-    {
       "id": "tour3",
       "name": "PGL Major Copenhagen 2025",
       "status": "ongoing",
