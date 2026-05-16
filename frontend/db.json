@@ -322,15 +322,6 @@
       "order": 3
     },
     {
-      "id": "map25",
-      "matchId": "m11",
-      "mapName": "Dust2",
-      "scoreA": 9,
-      "scoreB": 13,
-      "pickTeam": "t7",
-      "order": 2
-    },
-    {
       "id": "map26",
       "matchId": "m11",
       "mapName": "Nuke",
