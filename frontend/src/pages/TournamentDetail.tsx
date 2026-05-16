@@ -52,7 +52,7 @@ export default function TournamentDetail() {
 
   const statusLabel: Record<string, string> = { upcoming: '即将开始', ongoing: '进行中', finished: '已结束' };
   const formatLabel: Record<string, string> = { 'single-elim': '单败淘汰', 'double-elim': '双败淘汰', 'round-robin': '循环赛', 'groups': '小组赛+淘汰' };
-  const bracketTypeLabel: Record<string, string> = { '4_single': '4队单淘', '4_double': '4队双淘', '8_single': '8队单淘' };
+  const bracketTypeLabel: Record<string, string> = { '4_single': '4队单淘', '4_double': '4队双淘', '8_single': '8队单淘', '8_double': '8队双淘' };
 
   const bracketType = tournament.bracketType || (tournament.format === 'double-elim' && tournament.teams.length >= 4 ? '4_double' : null);
 

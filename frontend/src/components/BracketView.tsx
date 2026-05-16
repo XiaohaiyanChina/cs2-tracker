@@ -29,6 +29,7 @@ function SlotCard({
   const tBWon = match && match.status === 'finished' && match.scoreB > match.scoreA;
   const isGrand = slot.round === 'grand_final';
   const isUB = slot.round.startsWith('ub');
+  const isBO1 = match?.format === 'bo1';
 
   return (
     <div className={`border rounded-lg shadow-sm relative group bg-white ${isGrand ? 'border-primary ring-1 ring-primary/20' : isUB ? 'border-green-200' : 'border-amber-200'}`}
@@ -44,18 +45,26 @@ function SlotCard({
           <span className={`text-[11px] font-medium truncate flex-1 ${tAWon ? 'text-gray-900 font-bold' : 'text-gray-500'}`}>
             {teamA?.name || 'TBD'}
           </span>
-          {match && match.status === 'finished' && <span className={`text-xs font-mono font-bold ${tAWon ? 'text-green-600' : 'text-gray-400'}`}>{match.scoreA}</span>}
+          {match && match.status === 'finished' && (
+            <span className={`text-xs font-mono font-bold ${tAWon ? 'text-green-600' : 'text-gray-400'}`}>
+              {isBO1 ? match.scoreA : match.scoreA}
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-1.5">
           <TeamLogo team={teamB} size="sm" />
           <span className={`text-[11px] font-medium truncate flex-1 ${tBWon ? 'text-gray-900 font-bold' : 'text-gray-500'}`}>
             {teamB?.name || 'TBD'}
           </span>
-          {match && match.status === 'finished' && <span className={`text-xs font-mono font-bold ${tBWon ? 'text-green-600' : 'text-gray-400'}`}>{match.scoreB}</span>}
+          {match && match.status === 'finished' && (
+            <span className={`text-xs font-mono font-bold ${tBWon ? 'text-green-600' : 'text-gray-400'}`}>
+              {isBO1 ? match.scoreB : match.scoreB}
+            </span>
+          )}
         </div>
         {match && (
           <div className="text-[10px] text-gray-400 text-center border-t border-gray-100 pt-1">
-            {new Date(match.date).toLocaleDateString('zh-CN')} {new Date(match.date).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
+            {new Date(match.date).toLocaleDateString('zh-CN')} {new Date(match.date).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })} · {match.format.toUpperCase()}
           </div>
         )}
         {!match && <div className="text-[10px] text-gray-300 text-center border-t border-gray-100 pt-1">待定</div>}
@@ -70,7 +79,7 @@ function SlotCard({
   );
 }
 
-// --- Orthogonal SVG Connectors (HLTV-style: 90° angles only) ---
+// --- Orthogonal SVG Connectors with anti-overlap ---
 function OrthoConnectors({ slots, containerRef }: { slots: BracketSlot[]; containerRef: React.RefObject<HTMLDivElement | null> }) {
   const [paths, setPaths] = useState<{ d: string; color: string; key: string }[]>([]);
 
@@ -78,6 +87,14 @@ function OrthoConnectors({ slots, containerRef }: { slots: BracketSlot[]; contai
     if (!containerRef.current) return;
     const containerRect = containerRef.current.getBoundingClientRect();
     const newPaths: typeof paths = [];
+
+    // Count inbound connections per target slot
+    const inboundCount = new Map<string, number>();
+    slots.forEach(s => {
+      if (s.nextWinSlotId) inboundCount.set(s.nextWinSlotId, (inboundCount.get(s.nextWinSlotId) || 0) + 1);
+      if (s.nextLoseSlotId) inboundCount.set(s.nextLoseSlotId, (inboundCount.get(s.nextLoseSlotId) || 0) + 1);
+    });
+    const seen = new Map<string, number>();
 
     slots.forEach(slot => {
       const srcEl = containerRef.current?.querySelector(`[data-slot-id="${slot.id}"]`) as HTMLElement | null;
@@ -92,10 +109,18 @@ function OrthoConnectors({ slots, containerRef }: { slots: BracketSlot[]; contai
         if (!tgtEl) return;
         const tgtRect = tgtEl.getBoundingClientRect();
         const tgtLeft = tgtRect.left - containerRect.left;
-        const tgtMidY = tgtRect.top + tgtRect.height / 2 - containerRect.top;
+        const tgtH = tgtRect.height;
+
+        // Offset target Y to avoid overlapping lines entering same slot
+        const count = inboundCount.get(targetSlotId) || 1;
+        const idx = seen.get(targetSlotId) || 0;
+        seen.set(targetSlotId, idx + 1);
+        // Spread evenly: e.g. for 2 entries → 30% and 70%; for 1 entry → center
+        const frac = count === 1 ? 0.5 : (idx + 1) / (count + 1);
+        const tgtMidY = tgtRect.top - containerRect.top + tgtH * frac;
+
         const midX = srcRight + (tgtLeft - srcRight) / 2;
 
-        // Orthogonal path: right → right, then to mid, then up/down, then right to target
         const d = `M ${srcRight},${srcMidY} L ${midX},${srcMidY} L ${midX},${tgtMidY} L ${tgtLeft},${tgtMidY}`;
         newPaths.push({ d, color, key });
       };
@@ -109,7 +134,7 @@ function OrthoConnectors({ slots, containerRef }: { slots: BracketSlot[]; contai
 
   useEffect(() => {
     calcPaths();
-    const timer = setTimeout(calcPaths, 100);
+    const timer = setTimeout(calcPaths, 200);
     window.addEventListener('resize', calcPaths);
     return () => { clearTimeout(timer); window.removeEventListener('resize', calcPaths); };
   }, [calcPaths]);
@@ -135,29 +160,38 @@ function OrthoConnectors({ slots, containerRef }: { slots: BracketSlot[]; contai
 }
 
 // --- Column layout helpers ---
-interface ColumnLayout {
-  cols: BracketSlot[][];
-  colLabels: string[];
-}
-
-function getColumnLayout(slots: BracketSlot[]): ColumnLayout {
+function getColumnLayout(slots: BracketSlot[]): { cols: BracketSlot[][]; colLabels: string[] } {
   const hasQuarter = slots.some(s => s.round === 'ub_quarter');
-  const hasLB = slots.some(s => s.round === 'lb_round1');
+  const hasLB = slots.some(s => s.round.startsWith('lb'));
   const hasGrand = slots.some(s => s.round === 'grand_final');
+  const hasLB3 = slots.some(s => s.round === 'lb_round3');
 
-  if (hasQuarter) {
+  if (hasLB3) {
+    // 8_double: UB QF → UB Semi/LB R1 → UB Final/LB R2 → LB R3 → LB Final → Grand Final
+    const qf = slots.filter(s => s.round === 'ub_quarter');
+    const ubSemi = slots.filter(s => s.round === 'ub_semi');
+    const ubFinal = slots.filter(s => s.round === 'ub_final');
+    const lbR1 = slots.filter(s => s.round === 'lb_round1');
+    const lbR2 = slots.filter(s => s.round === 'lb_round2');
+    const lbR3 = slots.filter(s => s.round === 'lb_round3');
+    const lbFinal = slots.filter(s => s.round === 'lb_final');
+    const grand = slots.filter(s => s.round === 'grand_final');
+    return {
+      cols: [qf, [...ubSemi, ...lbR1], [...ubFinal, ...lbR2], lbR3, [...lbFinal, ...grand]],
+      colLabels: ['胜者组1/4决赛', '胜者组半决赛 / 败者组R1', '胜者组决赛 / 败者组R2', '败者组R3', '败者组决赛 / 总决赛'],
+    };
+  }
+
+  if (hasQuarter && !hasLB) {
     // 8_single: QF → SF → Final
     const qf = slots.filter(s => s.round === 'ub_quarter');
     const sf = slots.filter(s => s.round === 'ub_semi');
     const finals = slots.filter(s => s.round === 'ub_final');
-    return {
-      cols: [qf, sf, finals],
-      colLabels: ['1/4决赛', '半决赛', '决赛'],
-    };
+    return { cols: [qf, sf, finals], colLabels: ['1/4决赛', '半决赛', '决赛'] };
   }
 
   if (hasLB && hasGrand) {
-    // 4_double: UB semi → UB final → Grand final, LB round1 → LB final
+    // 4_double: UB Semi → UB Final/LB R1 → LB Final → Grand Final
     const ubSemi = slots.filter(s => s.round === 'ub_semi');
     const ubFinal = slots.filter(s => s.round === 'ub_final');
     const lbR1 = slots.filter(s => s.round === 'lb_round1');
@@ -172,10 +206,7 @@ function getColumnLayout(slots: BracketSlot[]): ColumnLayout {
   // 4_single: Semi → Final
   const semi = slots.filter(s => s.round === 'ub_semi');
   const finals = slots.filter(s => s.round === 'ub_final');
-  return {
-    cols: [semi, finals],
-    colLabels: ['半决赛', '决赛'],
-  };
+  return { cols: [semi, finals], colLabels: ['半决赛', '决赛'] };
 }
 
 // --- Main BracketView ---
@@ -225,19 +256,18 @@ export default function BracketView({ slots, allMatches, teams, editable, onEdit
 
   const getTeam = (id: string | null | undefined) => teams.find(t => t.id === id) || null;
 
-  const layout = useMemo(() => getColumnLayout(slots), [slots]);
-  const { cols, colLabels } = layout;
+  const { cols, colLabels } = useMemo(() => getColumnLayout(slots), [slots]);
 
   if (slots.length === 0) return null;
 
   const gapX = 52;
-  const slotH = 100; // approximate slot height
-  const totalH = Math.max(...cols.map(c => c.length * slotH + (c.length - 1) * 20)) + 20;
+  const slotH = 105;
+  const maxColSlots = Math.max(...cols.map(c => c.length));
+  const totalH = maxColSlots * slotH + (maxColSlots - 1) * 20 + 40;
 
   return (
     <div className="overflow-x-auto pb-2">
-      <div style={{ minWidth: cols.length * 230, position: 'relative' }}>
-        {/* Column headers */}
+      <div style={{ minWidth: cols.length * 235, position: 'relative' }}>
         <div style={{ display: 'flex', marginBottom: 12 }}>
           {colLabels.map((label, i) => (
             <div key={i} style={{ width: 180, textAlign: 'center', marginRight: i < colLabels.length - 1 ? gapX : 0 }}>
@@ -246,16 +276,16 @@ export default function BracketView({ slots, allMatches, teams, editable, onEdit
           ))}
         </div>
 
-        {/* Bracket area */}
         <div ref={bracketRef} style={{ height: totalH, position: 'relative' }}>
           {cols.map((colSlots, colIdx) => {
             const left = colIdx * (180 + gapX);
-            const slotSpacing = colSlots.length > 1 ? (totalH - colSlots.length * slotH) / (colSlots.length - 1) : 0;
+            // Spread slots within column
+            const spacing = colSlots.length > 1 ? (totalH - colSlots.length * slotH) / (colSlots.length + 1) : 0;
 
             return colSlots.map((s, i) => {
               const top = colSlots.length === 1
                 ? (totalH - slotH) / 2
-                : i * (slotH + slotSpacing);
+                : spacing + i * (slotH + spacing);
 
               const m = slotMatches.get(s.id) ?? null;
 
