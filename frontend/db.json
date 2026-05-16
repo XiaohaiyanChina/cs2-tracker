@@ -1,27 +1,6 @@
 {
   "players": [
     {
-      "id": "p10",
-      "nickname": "EliGE",
-      "avatar": "",
-      "realName": "Jonathan Jablonowski",
-      "age": 25,
-      "gender": "男",
-      "steamId": "STEAM_1:0:012345",
-      "isCoach": false,
-      "attributes": {
-        "rating30": 65,
-        "firepower": 75,
-        "entrying": 80,
-        "trading": 58,
-        "opening": 76,
-        "clutching": 55,
-        "sniping": 40,
-        "utility": 62
-      },
-      "createdAt": "2025-02-15"
-    },
-    {
       "id": "p11",
       "nickname": "karrigan",
       "avatar": "",
