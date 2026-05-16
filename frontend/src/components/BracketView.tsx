@@ -29,7 +29,6 @@ function SlotCard({
   const tBWon = match && match.status === 'finished' && match.scoreB > match.scoreA;
   const isGrand = slot.round === 'grand_final';
   const isUB = slot.round.startsWith('ub');
-  const isBO1 = match?.format === 'bo1';
 
   return (
     <div className={`border rounded-lg shadow-sm relative group bg-white ${isGrand ? 'border-primary ring-1 ring-primary/20' : isUB ? 'border-green-200' : 'border-amber-200'}`}
@@ -42,25 +41,13 @@ function SlotCard({
       <div className="p-2 space-y-1">
         <div className="flex items-center gap-1.5">
           <TeamLogo team={teamA} size="sm" />
-          <span className={`text-[11px] font-medium truncate flex-1 ${tAWon ? 'text-gray-900 font-bold' : 'text-gray-500'}`}>
-            {teamA?.name || 'TBD'}
-          </span>
-          {match && match.status === 'finished' && (
-            <span className={`text-xs font-mono font-bold ${tAWon ? 'text-green-600' : 'text-gray-400'}`}>
-              {isBO1 ? match.scoreA : match.scoreA}
-            </span>
-          )}
+          <span className={`text-[11px] font-medium truncate flex-1 ${tAWon ? 'text-gray-900 font-bold' : 'text-gray-500'}`}>{teamA?.name || 'TBD'}</span>
+          {match && match.status === 'finished' && <span className={`text-xs font-mono font-bold ${tAWon ? 'text-green-600' : 'text-gray-400'}`}>{match.scoreA}</span>}
         </div>
         <div className="flex items-center gap-1.5">
           <TeamLogo team={teamB} size="sm" />
-          <span className={`text-[11px] font-medium truncate flex-1 ${tBWon ? 'text-gray-900 font-bold' : 'text-gray-500'}`}>
-            {teamB?.name || 'TBD'}
-          </span>
-          {match && match.status === 'finished' && (
-            <span className={`text-xs font-mono font-bold ${tBWon ? 'text-green-600' : 'text-gray-400'}`}>
-              {isBO1 ? match.scoreB : match.scoreB}
-            </span>
-          )}
+          <span className={`text-[11px] font-medium truncate flex-1 ${tBWon ? 'text-gray-900 font-bold' : 'text-gray-500'}`}>{teamB?.name || 'TBD'}</span>
+          {match && match.status === 'finished' && <span className={`text-xs font-mono font-bold ${tBWon ? 'text-green-600' : 'text-gray-400'}`}>{match.scoreB}</span>}
         </div>
         {match && (
           <div className="text-[10px] text-gray-400 text-center border-t border-gray-100 pt-1">
@@ -79,7 +66,7 @@ function SlotCard({
   );
 }
 
-// --- Orthogonal SVG Connectors with anti-overlap ---
+// --- Orthogonal SVG Connectors ---
 function OrthoConnectors({ slots, containerRef }: { slots: BracketSlot[]; containerRef: React.RefObject<HTMLDivElement | null> }) {
   const [paths, setPaths] = useState<{ d: string; color: string; key: string }[]>([]);
 
@@ -88,13 +75,12 @@ function OrthoConnectors({ slots, containerRef }: { slots: BracketSlot[]; contai
     const containerRect = containerRef.current.getBoundingClientRect();
     const newPaths: typeof paths = [];
 
-    // Count inbound connections per target slot
     const inboundCount = new Map<string, number>();
+    const seen = new Map<string, number>();
     slots.forEach(s => {
       if (s.nextWinSlotId) inboundCount.set(s.nextWinSlotId, (inboundCount.get(s.nextWinSlotId) || 0) + 1);
       if (s.nextLoseSlotId) inboundCount.set(s.nextLoseSlotId, (inboundCount.get(s.nextLoseSlotId) || 0) + 1);
     });
-    const seen = new Map<string, number>();
 
     slots.forEach(slot => {
       const srcEl = containerRef.current?.querySelector(`[data-slot-id="${slot.id}"]`) as HTMLElement | null;
@@ -111,16 +97,13 @@ function OrthoConnectors({ slots, containerRef }: { slots: BracketSlot[]; contai
         const tgtLeft = tgtRect.left - containerRect.left;
         const tgtH = tgtRect.height;
 
-        // Offset target Y to avoid overlapping lines entering same slot
         const count = inboundCount.get(targetSlotId) || 1;
         const idx = seen.get(targetSlotId) || 0;
         seen.set(targetSlotId, idx + 1);
-        // Spread evenly: e.g. for 2 entries → 30% and 70%; for 1 entry → center
         const frac = count === 1 ? 0.5 : (idx + 1) / (count + 1);
         const tgtMidY = tgtRect.top - containerRect.top + tgtH * frac;
 
         const midX = srcRight + (tgtLeft - srcRight) / 2;
-
         const d = `M ${srcRight},${srcMidY} L ${midX},${srcMidY} L ${midX},${tgtMidY} L ${tgtLeft},${tgtMidY}`;
         newPaths.push({ d, color, key });
       };
@@ -159,54 +142,89 @@ function OrthoConnectors({ slots, containerRef }: { slots: BracketSlot[]; contai
   );
 }
 
-// --- Column layout helpers ---
-function getColumnLayout(slots: BracketSlot[]): { cols: BracketSlot[][]; colLabels: string[] } {
-  const hasQuarter = slots.some(s => s.round === 'ub_quarter');
+// --- Two-track layout: UB (top), LB (bottom), Grand Final (right-center) ---
+interface TrackLayout {
+  ubCols: BracketSlot[][];
+  lbCols: BracketSlot[][];
+  finalSlots: BracketSlot[];
+  ubLabel: string;
+  lbLabel: string;
+  totalCols: number; // max columns across both tracks
+}
+
+function getTrackLayout(slots: BracketSlot[]): TrackLayout {
   const hasLB = slots.some(s => s.round.startsWith('lb'));
-  const hasGrand = slots.some(s => s.round === 'grand_final');
+  const hasQuarter = slots.some(s => s.round === 'ub_quarter');
   const hasLB3 = slots.some(s => s.round === 'lb_round3');
+  const grand = slots.filter(s => s.round === 'grand_final');
 
   if (hasLB3) {
-    // 8_double: UB QF → UB Semi/LB R1 → UB Final/LB R2 → LB R3 → LB Final → Grand Final
-    const qf = slots.filter(s => s.round === 'ub_quarter');
-    const ubSemi = slots.filter(s => s.round === 'ub_semi');
-    const ubFinal = slots.filter(s => s.round === 'ub_final');
-    const lbR1 = slots.filter(s => s.round === 'lb_round1');
-    const lbR2 = slots.filter(s => s.round === 'lb_round2');
-    const lbR3 = slots.filter(s => s.round === 'lb_round3');
-    const lbFinal = slots.filter(s => s.round === 'lb_final');
-    const grand = slots.filter(s => s.round === 'grand_final');
+    // 8_double
     return {
-      cols: [qf, [...ubSemi, ...lbR1], [...ubFinal, ...lbR2], lbR3, [...lbFinal, ...grand]],
-      colLabels: ['胜者组1/4决赛', '胜者组半决赛 / 败者组R1', '胜者组决赛 / 败者组R2', '败者组R3', '败者组决赛 / 总决赛'],
+      ubCols: [
+        slots.filter(s => s.round === 'ub_quarter'),
+        slots.filter(s => s.round === 'ub_semi'),
+        slots.filter(s => s.round === 'ub_final'),
+      ],
+      lbCols: [
+        slots.filter(s => s.round === 'lb_round1'),
+        slots.filter(s => s.round === 'lb_round2'),
+        slots.filter(s => s.round === 'lb_round3'),
+        slots.filter(s => s.round === 'lb_final'),
+      ],
+      finalSlots: grand,
+      ubLabel: '胜者组',
+      lbLabel: '败者组',
+      totalCols: 4,
     };
   }
 
   if (hasQuarter && !hasLB) {
-    // 8_single: QF → SF → Final
-    const qf = slots.filter(s => s.round === 'ub_quarter');
-    const sf = slots.filter(s => s.round === 'ub_semi');
-    const finals = slots.filter(s => s.round === 'ub_final');
-    return { cols: [qf, sf, finals], colLabels: ['1/4决赛', '半决赛', '决赛'] };
-  }
-
-  if (hasLB && hasGrand) {
-    // 4_double: UB Semi → UB Final/LB R1 → LB Final → Grand Final
-    const ubSemi = slots.filter(s => s.round === 'ub_semi');
-    const ubFinal = slots.filter(s => s.round === 'ub_final');
-    const lbR1 = slots.filter(s => s.round === 'lb_round1');
-    const lbFinal = slots.filter(s => s.round === 'lb_final');
-    const grandFinal = slots.filter(s => s.round === 'grand_final');
+    // 8_single
     return {
-      cols: [ubSemi, [...ubFinal, ...lbR1], lbFinal, grandFinal],
-      colLabels: ['胜者组半决赛', '胜者组决赛 / 败者组第一轮', '败者组决赛', '总决赛'],
+      ubCols: [
+        slots.filter(s => s.round === 'ub_quarter'),
+        slots.filter(s => s.round === 'ub_semi'),
+        slots.filter(s => s.round === 'ub_final'),
+      ],
+      lbCols: [],
+      finalSlots: [],
+      ubLabel: '1/4决赛 → 半决赛 → 决赛',
+      lbLabel: '',
+      totalCols: 3,
     };
   }
 
-  // 4_single: Semi → Final
-  const semi = slots.filter(s => s.round === 'ub_semi');
-  const finals = slots.filter(s => s.round === 'ub_final');
-  return { cols: [semi, finals], colLabels: ['半决赛', '决赛'] };
+  if (hasLB && !hasQuarter) {
+    // 4_double
+    return {
+      ubCols: [
+        slots.filter(s => s.round === 'ub_semi'),
+        slots.filter(s => s.round === 'ub_final'),
+      ],
+      lbCols: [
+        slots.filter(s => s.round === 'lb_round1'),
+        slots.filter(s => s.round === 'lb_final'),
+      ],
+      finalSlots: grand,
+      ubLabel: '胜者组',
+      lbLabel: '败者组',
+      totalCols: 2,
+    };
+  }
+
+  // 4_single
+  return {
+    ubCols: [
+      slots.filter(s => s.round === 'ub_semi'),
+      slots.filter(s => s.round === 'ub_final'),
+    ],
+    lbCols: [],
+    finalSlots: [],
+    ubLabel: '半决赛 → 决赛',
+    lbLabel: '',
+    totalCols: 2,
+  };
 }
 
 // --- Main BracketView ---
@@ -256,52 +274,87 @@ export default function BracketView({ slots, allMatches, teams, editable, onEdit
 
   const getTeam = (id: string | null | undefined) => teams.find(t => t.id === id) || null;
 
-  const { cols, colLabels } = useMemo(() => getColumnLayout(slots), [slots]);
+  const layout = useMemo(() => getTrackLayout(slots), [slots]);
+  const { ubCols, lbCols, finalSlots, ubLabel, lbLabel, totalCols } = layout;
 
   if (slots.length === 0) return null;
 
   const gapX = 52;
   const slotH = 105;
-  const maxColSlots = Math.max(...cols.map(c => c.length));
-  const totalH = maxColSlots * slotH + (maxColSlots - 1) * 20 + 40;
+  const colW = 180;
+  const hasLB = lbCols.length > 0;
+  const maxUB = Math.max(...ubCols.map(c => c.length), 1);
+  const maxLB = Math.max(...lbCols.map(c => c.length), 1);
+
+  // Track heights
+  const ubBandH = maxUB * slotH + (maxUB - 1) * 24 + 10;
+  const lbBandH = hasLB ? maxLB * slotH + (maxLB - 1) * 24 + 10 : 0;
+  const bandGap = hasLB ? 40 : 0;
+  const totalH = ubBandH + bandGap + lbBandH + 20;
+
+  // Helper: position slots within a column track
+  const placeSlots = (colSlots: BracketSlot[], maxInTrack: number, topOffset: number) =>
+    colSlots.map((s, i) => {
+      const spacing = colSlots.length > 1 ? (maxInTrack * slotH + (maxInTrack - 1) * 24 - colSlots.length * slotH) / (colSlots.length + 1) : (maxInTrack * slotH + (maxInTrack - 1) * 24 - slotH) / 2;
+      const top = topOffset + spacing + i * (slotH + spacing);
+      const m = slotMatches.get(s.id) ?? null;
+      return { slot: s, top, match: m };
+    });
+
+  const hasGrand = finalSlots.length > 0;
 
   return (
     <div className="overflow-x-auto pb-2">
-      <div style={{ minWidth: cols.length * 235, position: 'relative' }}>
-        <div style={{ display: 'flex', marginBottom: 12 }}>
-          {colLabels.map((label, i) => (
-            <div key={i} style={{ width: 180, textAlign: 'center', marginRight: i < colLabels.length - 1 ? gapX : 0 }}>
-              <span className="text-xs font-bold text-gray-500 bg-gray-100 border border-gray-200 rounded-full px-3 py-1">{label}</span>
-            </div>
-          ))}
+      <div style={{ minWidth: (totalCols + (hasGrand ? 1 : 0)) * 235, position: 'relative' }}>
+
+        {/* Track labels */}
+        <div style={{ position: 'absolute', left: 8, top: ubBandH / 2 - 8 }} className="text-xs font-bold text-green-600">
+          {ubLabel}
         </div>
+        {hasLB && (
+          <div style={{ position: 'absolute', left: 8, top: ubBandH + bandGap + lbBandH / 2 - 8 }} className="text-xs font-bold text-amber-600">
+            {lbLabel}
+          </div>
+        )}
 
-        <div ref={bracketRef} style={{ height: totalH, position: 'relative' }}>
-          {cols.map((colSlots, colIdx) => {
-            const left = colIdx * (180 + gapX);
-            // Spread slots within column
-            const spacing = colSlots.length > 1 ? (totalH - colSlots.length * slotH) / (colSlots.length + 1) : 0;
+        <div ref={bracketRef} style={{ height: totalH, position: 'relative', marginLeft: 64 }}>
 
-            return colSlots.map((s, i) => {
-              const top = colSlots.length === 1
-                ? (totalH - slotH) / 2
-                : spacing + i * (slotH + spacing);
+          {/* UB Track */}
+          {ubCols.map((colSlots, colIdx) => {
+            const left = colIdx * (colW + gapX);
+            return placeSlots(colSlots, maxUB, 0).map(({ slot, top, match }) => (
+              <div key={slot.id} style={{ position: 'absolute', left, top, width: colW }}>
+                <SlotCard slot={slot} match={match}
+                  teamA={getTeam(resolvedA.get(slot.id))} teamB={getTeam(resolvedB.get(slot.id))}
+                  editable={editable} onEdit={() => onEditSlot?.(slot)} onDelete={() => onDeleteSlot?.(slot)} />
+              </div>
+            ));
+          })}
 
-              const m = slotMatches.get(s.id) ?? null;
+          {/* LB Track */}
+          {hasLB && lbCols.map((colSlots, colIdx) => {
+            const left = colIdx * (colW + gapX);
+            return placeSlots(colSlots, maxLB, ubBandH + bandGap).map(({ slot, top, match }) => (
+              <div key={slot.id} style={{ position: 'absolute', left, top, width: colW }}>
+                <SlotCard slot={slot} match={match}
+                  teamA={getTeam(resolvedA.get(slot.id))} teamB={getTeam(resolvedB.get(slot.id))}
+                  editable={editable} onEdit={() => onEditSlot?.(slot)} onDelete={() => onDeleteSlot?.(slot)} />
+              </div>
+            ));
+          })}
 
-              return (
-                <div key={s.id} style={{ position: 'absolute', left, top, width: 180 }}>
-                  <SlotCard
-                    slot={s} match={m}
-                    teamA={getTeam(resolvedA.get(s.id))}
-                    teamB={getTeam(resolvedB.get(s.id))}
-                    editable={editable}
-                    onEdit={() => onEditSlot?.(s)}
-                    onDelete={() => onDeleteSlot?.(s)}
-                  />
-                </div>
-              );
-            });
+          {/* Grand Final */}
+          {hasGrand && finalSlots.map(s => {
+            const left = totalCols * (colW + gapX);
+            const top = (totalH - slotH) / 2;
+            const m = slotMatches.get(s.id) ?? null;
+            return (
+              <div key={s.id} style={{ position: 'absolute', left, top, width: colW }}>
+                <SlotCard slot={s} match={m}
+                  teamA={getTeam(resolvedA.get(s.id))} teamB={getTeam(resolvedB.get(s.id))}
+                  editable={editable} onEdit={() => onEditSlot?.(s)} onDelete={() => onDeleteSlot?.(s)} />
+              </div>
+            );
           })}
 
           <OrthoConnectors slots={slots} containerRef={bracketRef} />
