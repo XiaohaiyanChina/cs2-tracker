@@ -1,5 +1,27 @@
 {
-  "players": [],
+  "players": [
+    {
+      "id": "player_1778922184865",
+      "nickname": "Y1SeN",
+      "realName": "ShengYi Zi",
+      "age": 17,
+      "gender": "男",
+      "avatar": "",
+      "steamId": "STEAM_1:0:1778922184865",
+      "isCoach": false,
+      "attributes": {
+        "rating30": 87,
+        "firepower": 80,
+        "entrying": 58,
+        "trading": 81,
+        "opening": 51,
+        "clutching": 89,
+        "sniping": 83,
+        "utility": 60
+      },
+      "createdAt": "2026-05-16"
+    }
+  ],
   "teams": [
     {
       "id": "team_1778919358778",
