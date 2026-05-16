@@ -322,15 +322,6 @@
       "order": 3
     },
     {
-      "id": "map24",
-      "matchId": "m11",
-      "mapName": "Inferno",
-      "scoreA": 13,
-      "scoreB": 11,
-      "pickTeam": "t6",
-      "order": 1
-    },
-    {
       "id": "map25",
       "matchId": "m11",
       "mapName": "Dust2",
