@@ -423,30 +423,6 @@
   ],
   "teams": [
     {
-      "id": "t2",
-      "name": "FaZe Clan",
-      "logo": "",
-      "tag": "FaZe",
-      "members": [
-        "p6",
-        "p8",
-        "p12",
-        "p9"
-      ],
-      "coach": "p11",
-      "elo": 1080,
-      "achievements": [
-        {
-          "id": "a3",
-          "teamId": "t2",
-          "tournamentName": "IEM Katowice 2025",
-          "placement": "四强",
-          "date": "2025-02-08"
-        }
-      ],
-      "createdAt": "2025-01-15"
-    },
-    {
       "id": "t3",
       "name": "G2 Esports",
       "logo": "",
