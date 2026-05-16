@@ -229,7 +229,7 @@ function TournamentEditor({ onMsg }: { onMsg: (s: string) => void }) {
         <div className="p-4 border-b border-gray-200 flex items-center justify-between">
           <h3 className="font-semibold text-gray-900">现有赛事 ({tournaments?.length || 0})</h3>
           <button onClick={selectAll} className="text-xs text-gray-400 hover:text-primary flex items-center gap-1">
-            {selected.length === (tournaments?.length || 0) && tournaments!.length > 0 ? <CheckSquare className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />}
+            {selected.length > 0 && selected.length === (tournaments?.length ?? 0) ? <CheckSquare className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />}
             全选
           </button>
         </div>
@@ -390,7 +390,7 @@ function TeamEditor({ onMsg }: { onMsg: (s: string) => void }) {
         <div className="p-4 border-b border-gray-200 flex items-center justify-between">
           <h3 className="font-semibold text-gray-900">现有战队 ({teams?.length || 0})</h3>
           <button onClick={selectAll} className="text-xs text-gray-400 hover:text-primary flex items-center gap-1">
-            {selected.length === (teams?.length || 0) && teams!.length > 0 ? <CheckSquare className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />}
+            {selected.length > 0 && selected.length === (teams?.length ?? 0) ? <CheckSquare className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />}
             全选
           </button>
         </div>
@@ -596,7 +596,7 @@ function PlayerEditor({ onMsg }: { onMsg: (s: string) => void }) {
         <div className="p-4 border-b border-gray-200 flex items-center justify-between">
           <h3 className="font-semibold text-gray-900">现有选手 ({players?.length || 0})</h3>
           <button onClick={selectAll} className="text-xs text-gray-400 hover:text-primary flex items-center gap-1">
-            {selected.length === (players?.length || 0) && players!.length > 0 ? <CheckSquare className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />}
+            {selected.length > 0 && selected.length === (players?.length ?? 0) ? <CheckSquare className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />}
             全选
           </button>
         </div>
