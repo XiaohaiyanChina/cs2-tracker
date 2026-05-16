@@ -1,27 +1,6 @@
 {
   "players": [
     {
-      "id": "p12",
-      "nickname": "rain",
-      "avatar": "",
-      "realName": "Håvard Nygaard",
-      "age": 29,
-      "gender": "男",
-      "steamId": "STEAM_1:0:222222",
-      "isCoach": false,
-      "attributes": {
-        "rating30": 62,
-        "firepower": 72,
-        "entrying": 85,
-        "trading": 52,
-        "opening": 82,
-        "clutching": 58,
-        "sniping": 35,
-        "utility": 55
-      },
-      "createdAt": "2025-01-10"
-    },
-    {
       "id": "p13",
       "nickname": "apEX",
       "avatar": "",
