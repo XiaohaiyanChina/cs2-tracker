@@ -33,15 +33,7 @@
       ],
       "coach": null,
       "elo": 1000,
-      "achievements": [
-        {
-          "id": "ach_1778939927522",
-          "teamId": "team_1778919358778",
-          "tournamentName": "LD对内友谊赛",
-          "placement": "冠军",
-          "date": "2026-05-16"
-        }
-      ],
+      "achievements": [],
       "createdAt": "2026-05-16"
     }
   ],
