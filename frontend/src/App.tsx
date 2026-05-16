@@ -7,6 +7,7 @@ import Players from './pages/Players';
 import PlayerDetail from './pages/PlayerDetail';
 import Admin from './pages/Admin';
 import MatchDetail from './pages/MatchDetail';
+import TournamentDetail from './pages/TournamentDetail';
 import LoginPage from './pages/LoginPage';
 import { isAuthenticated } from './utils/auth';
 
@@ -29,6 +30,7 @@ export default function App() {
           <Route path="/players/:id" element={<PlayerDetail />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/matches/:id" element={<MatchDetail />} />
+          <Route path="/tournaments/:id" element={<TournamentDetail />} />
           <Route path="/admin" element={<RequireAuth><Admin /></RequireAuth>} />
         </Routes>
       </Layout>

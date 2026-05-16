@@ -185,7 +185,7 @@ export default function TeamDetail() {
                       </span>
                     )}
                     <span className="text-xs text-gray-400 hidden sm:inline truncate max-w-[120px]">
-                      {tournament?.name}
+                      {tournament ? <Link to={`/tournaments/${tournament.id}`} className="hover:text-primary hover:underline">{tournament.name}</Link> : ''}
                     </span>
                   </div>
                 );

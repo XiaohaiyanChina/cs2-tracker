@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { usePlayers, useTeams, useTournaments, useMatches, useMatchMaps, useMatchStats } from '../hooks/useData';
 import { API_BASE } from '../utils/config';
 import { calcEloChange, initialElo } from '../utils/elo';
+import { generateDoubleElimBracket } from '../utils/bracket';
 import { logout } from '../utils/auth';
 import ImageUpload from '../components/ImageUpload';
-import { Settings, Trophy, Users, Gamepad2, Swords, Save, Plus, Trash2, CheckCircle, X, ChevronDown, ChevronUp, LogOut, Download, Upload, Square, CheckSquare, Loader2 } from 'lucide-react';
+import { Settings, Trophy, Users, Gamepad2, Swords, Save, Plus, Trash2, CheckCircle, X, ChevronDown, ChevronUp, LogOut, Download, Upload, Square, CheckSquare, Loader2, ExternalLink } from 'lucide-react';
 import type { PlayerAttributes, Achievement, PlayerHonor } from '../types';
 
 function Spinner() {
@@ -162,14 +163,19 @@ function TournamentEditor({ onMsg }: { onMsg: (s: string) => void }) {
 
   const create = async () => {
     if (!name.trim()) return alert('请输入赛事名称');
+    const tid = 'tour_' + Date.now();
+    const body: any = {
+      id: tid, name: name.trim(), description: desc, format, status,
+      startDate: startDate || new Date().toISOString().split('T')[0],
+      endDate: endDate || new Date().toISOString().split('T')[0],
+      teams: selTeams,
+    };
+    if (format === 'double-elim' && selTeams.length >= 4) {
+      body.bracketSlots = generateDoubleElimBracket(tid, selTeams);
+    }
     const res = await fetch(`${API_BASE}/tournaments`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id: 'tour_' + Date.now(), name: name.trim(), description: desc, format, status,
-        startDate: startDate || new Date().toISOString().split('T')[0],
-        endDate: endDate || new Date().toISOString().split('T')[0],
-        teams: selTeams,
-      }),
+      body: JSON.stringify(body),
     });
     if (res.ok) { onMsg(`赛事 "${name}" 已创建`); setName(''); setDesc(''); setSelTeams([]); refreshTournaments(); }
   };
@@ -258,7 +264,12 @@ function TournamentEditor({ onMsg }: { onMsg: (s: string) => void }) {
                   <td><span className={`text-xs px-2 py-0.5 rounded ${t.status === 'ongoing' ? 'bg-green-100 text-green-700' : t.status === 'upcoming' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>{t.status === 'ongoing' ? '进行中' : t.status === 'upcoming' ? '即将' : '已结束'}</span></td>
                   <td className="text-gray-500 text-sm">{t.startDate} ~ {t.endDate}</td>
                   <td className="text-gray-500 text-sm">{t.teams?.length || 0} 队</td>
-                  <td><button onClick={() => remove(t.id)} className="text-red-500 hover:text-red-700 text-xs"><Trash2 className="w-3.5 h-3.5" /></button></td>
+                  <td>
+                    <div className="flex items-center gap-1">
+                      <Link to={`/tournaments/${t.id}`} className="text-primary hover:text-primary-dark text-xs" title="查看详情"><ExternalLink className="w-3.5 h-3.5" /></Link>
+                      <button onClick={() => remove(t.id)} className="text-red-500 hover:text-red-700 text-xs"><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -843,6 +854,39 @@ function MatchEditor({ onMsg }: { onMsg: (s: string) => void }) {
     setEditingMap(null);
   };
 
+  const addMapToMatch = async (matchId: string) => {
+    const match = matches?.find(m => m.id === matchId);
+    if (!match) return;
+    const newMapId = `mm_${matchId}_${Date.now()}`;
+    await fetch(`${API_BASE}/matchMaps`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: newMapId, matchId, mapName: 'Mirage', scoreA: 0, scoreB: 0, pickTeam: null, order: (match.mapIds?.length || 0) + 1 }),
+    });
+    const updatedMatch = { ...match, mapIds: [...(match.mapIds || []), newMapId] };
+    await fetch(`${API_BASE}/matches/${matchId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updatedMatch) });
+    refreshMatches();
+    refreshMaps();
+    onMsg('已添加新地图');
+  };
+
+  const removeMapFromMatch = async (matchId: string, mapId: string) => {
+    if (!confirm('确定删除此地图及所有相关选手数据？')) return;
+    const match = matches?.find(m => m.id === matchId);
+    const statsToDelete = (allStats || []).filter(s => s.matchMapId === mapId);
+    for (const s of statsToDelete) {
+      await fetch(`${API_BASE}/matchStats/${s.id}`, { method: 'DELETE' });
+    }
+    await fetch(`${API_BASE}/matchMaps/${mapId}`, { method: 'DELETE' });
+    if (match) {
+      const updated = { ...match, mapIds: (match.mapIds || []).filter(id => id !== mapId) };
+      await fetch(`${API_BASE}/matches/${matchId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated) });
+    }
+    refreshMatches();
+    refreshMaps();
+    refreshStats();
+    onMsg('地图已删除');
+  };
+
   const startAddStat = (mapId: string) => {
     setEditingStat({ matchMapId: mapId, playerId: '', kills: '', deaths: '', assists: '', adr: '', rating: '', kpr: '', hs: '', entry: '', clutches: '' });
   };
@@ -981,6 +1025,8 @@ function MatchEditor({ onMsg }: { onMsg: (s: string) => void }) {
                               <span className="text-xs text-gray-400">{mapStats.length} 条数据</span>
                               <button onClick={(e) => { e.stopPropagation(); setEditingMap({ id: mm.id, mapName: mm.mapName, scoreA: String(mm.scoreA), scoreB: String(mm.scoreB) }); setExpandMapId(null); }}
                                 className="text-xs text-primary hover:underline">编辑比分</button>
+                              <button onClick={(e) => { e.stopPropagation(); removeMapFromMatch(m.id, mm.id); }}
+                                className="text-xs text-red-500 hover:underline"><Trash2 className="w-3 h-3 inline mr-0.5" />删除</button>
                             </div>
                           </div>
                           )}
@@ -1067,6 +1113,12 @@ function MatchEditor({ onMsg }: { onMsg: (s: string) => void }) {
                         </div>
                       );
                     })}
+                    <button
+                      onClick={() => addMapToMatch(m.id)}
+                      className="flex items-center gap-1 text-xs text-primary hover:text-primary-dark hover:underline mt-2"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> 添加地图
+                    </button>
                   </div>
                 )}
               </div>

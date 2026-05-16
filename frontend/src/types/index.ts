@@ -54,6 +54,23 @@ export interface Team {
 export type TournamentStatus = 'upcoming' | 'ongoing' | 'finished';
 export type TournamentFormat = 'single-elim' | 'double-elim' | 'round-robin' | 'groups';
 
+export type BracketRound = 'ub_round1' | 'ub_final' | 'lb_round1' | 'lb_final' | 'grand_final';
+
+export interface BracketSlot {
+  id: string;
+  round: BracketRound;
+  label: string;
+  matchId: string | null;
+  teamAId: string | null;
+  teamBId: string | null;
+  nextWinSlotId: string | null;
+  nextLoseSlotId: string | null;
+  sourceA: 'fixed' | 'winner_of' | 'loser_of';
+  sourceB: 'fixed' | 'winner_of' | 'loser_of';
+  sourceSlotAId: string | null;
+  sourceSlotBId: string | null;
+}
+
 export interface Tournament {
   id: string;
   name: string;
@@ -63,6 +80,7 @@ export interface Tournament {
   format: TournamentFormat;
   teams: string[];
   description: string;
+  bracketSlots?: BracketSlot[];
 }
 
 export type MatchStatus = 'upcoming' | 'live' | 'finished';
