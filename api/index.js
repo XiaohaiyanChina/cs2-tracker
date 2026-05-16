@@ -95,6 +95,7 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
@@ -140,6 +141,51 @@ export default async function handler(req, res) {
       const counts = {};
       COLLECTIONS.forEach(c => { counts[c] = db[c].length; });
       return res.json({ ok: true, counts });
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
+  if (parsed.special === 'batch-delete') {
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+    try {
+      const { collection, ids } = req.body || {};
+      if (!collection || !Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ error: 'collection and ids[] required' });
+      }
+      if (!COLLECTIONS.includes(collection)) {
+        return res.status(400).json({ error: 'Invalid collection' });
+      }
+
+      const db = await readDB();
+      const before = db[collection].length;
+      const idSet = new Set(ids);
+
+      // Handle cascading deletes
+      if (collection === 'matches') {
+        // Also delete related matchMaps and matchStats
+        const mapIds = new Set<string>();
+        for (const m of db.matches) {
+          if (idSet.has(m.id)) {
+            m.mapIds?.forEach(mid => mapIds.add(mid));
+          }
+        }
+        db.matchMaps = db.matchMaps.filter(mm => !mapIds.has(mm.id));
+        db.matchStats = db.matchStats.filter(s => !mapIds.has(s.matchMapId));
+      }
+      if (collection === 'players') {
+        // Remove from teams
+        for (const t of db.teams) {
+          t.members = (t.members || []).filter(pid => !idSet.has(pid));
+          if (idSet.has(t.coach || '')) t.coach = null;
+        }
+      }
+
+      db[collection] = db[collection].filter(x => !idSet.has(x.id));
+      const after = db[collection].length;
+
+      await writeDB(db);
+      return res.json({ ok: true, deleted: before - after, total: after });
     } catch (e) {
       return res.status(500).json({ error: e.message });
     }

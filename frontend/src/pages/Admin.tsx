@@ -175,12 +175,15 @@ function TournamentEditor({ onMsg }: { onMsg: (s: string) => void }) {
 
   const batchRemove = async () => {
     if (!confirm(`确定批量删除 ${selected.length} 个赛事？`)) return;
-    for (const id of selected) {
-      await fetch(`${API_BASE}/tournaments/${id}`, { method: 'DELETE' });
+    const res = await fetch(`${API_BASE}/batch-delete`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ collection: 'tournaments', ids: selected }),
+    });
+    if (res.ok) {
+      refreshTournaments();
+      onMsg(`已删除 ${selected.length} 个赛事`);
+      setSelected([]);
     }
-    refreshTournaments();
-    onMsg(`已删除 ${selected.length} 个赛事`);
-    setSelected([]);
   };
 
   const toggleSelect = (id: string) => {
@@ -306,12 +309,15 @@ function TeamEditor({ onMsg }: { onMsg: (s: string) => void }) {
 
   const batchRemove = async () => {
     if (!confirm(`确定批量删除 ${selected.length} 个战队？选手数据将保留`)) return;
-    for (const id of selected) {
-      await fetch(`${API_BASE}/teams/${id}`, { method: 'DELETE' });
+    const res = await fetch(`${API_BASE}/batch-delete`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ collection: 'teams', ids: selected }),
+    });
+    if (res.ok) {
+      refreshTeams();
+      onMsg(`已删除 ${selected.length} 个战队`);
+      setSelected([]);
     }
-    refreshTeams();
-    onMsg(`已删除 ${selected.length} 个战队`);
-    setSelected([]);
   };
 
   const toggleSelect = (id: string) => {
@@ -538,18 +544,16 @@ function PlayerEditor({ onMsg }: { onMsg: (s: string) => void }) {
 
   const batchRemove = async () => {
     if (!confirm(`确定批量删除 ${selected.length} 个选手？将从所有战队中移除`)) return;
-    for (const id of selected) {
-      const affectedTeams = teams?.filter(t => t.members?.includes(id) || t.coach === id) || [];
-      for (const t of affectedTeams) {
-        const updated = { ...t, members: (t.members || []).filter(x => x !== id), coach: t.coach === id ? null : t.coach };
-        await fetch(`${API_BASE}/teams/${t.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated) });
-      }
-      await fetch(`${API_BASE}/players/${id}`, { method: 'DELETE' });
+    const res = await fetch(`${API_BASE}/batch-delete`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ collection: 'players', ids: selected }),
+    });
+    if (res.ok) {
+      refreshPlayers();
+      refreshTeams();
+      onMsg(`已删除 ${selected.length} 个选手`);
+      setSelected([]);
     }
-    refreshPlayers();
-    refreshTeams();
-    onMsg(`已删除 ${selected.length} 个选手`);
-    setSelected([]);
   };
 
   const toggleSelect = (id: string) => {
@@ -671,20 +675,15 @@ function MatchEditor({ onMsg }: { onMsg: (s: string) => void }) {
 
   const batchRemoveMatches = async () => {
     if (!confirm(`确定批量删除 ${selectedMatches.length} 场比赛？将同时删除相关地图和数据`)) return;
-    for (const id of selectedMatches) {
-      const matchMaps = (allMaps || []).filter(mm => matches?.find(m => m.id === id)?.mapIds?.includes(mm.id));
-      for (const mm of matchMaps) {
-        const stats = (allStats || []).filter(s => s.matchMapId === mm.id);
-        for (const s of stats) {
-          await fetch(`${API_BASE}/matchStats/${s.id}`, { method: 'DELETE' });
-        }
-        await fetch(`${API_BASE}/matchMaps/${mm.id}`, { method: 'DELETE' });
-      }
-      await fetch(`${API_BASE}/matches/${id}`, { method: 'DELETE' });
+    const res = await fetch(`${API_BASE}/batch-delete`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ collection: 'matches', ids: selectedMatches }),
+    });
+    if (res.ok) {
+      refreshMatches(); refreshMaps(); refreshStats();
+      onMsg(`已删除 ${selectedMatches.length} 场比赛`);
+      setSelectedMatches([]);
     }
-    refreshMatches(); refreshMaps(); refreshStats();
-    onMsg(`已删除 ${selectedMatches.length} 场比赛`);
-    setSelectedMatches([]);
   };
 
   const toggleMatchSelect = (id: string) => {
