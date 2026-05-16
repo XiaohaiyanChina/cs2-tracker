@@ -49,24 +49,7 @@
     }
   ],
   "tournaments": [],
-  "matches": [
-    {
-      "id": "match_1778939348695",
-      "tournamentId": "tour_1778939287738",
-      "teamAId": "team_1778919358778",
-      "teamBId": "team_1778919358778",
-      "scoreA": 0,
-      "scoreB": 0,
-      "date": "2026-05-16T05:48:00.000Z",
-      "status": "finished",
-      "format": "bo1",
-      "mapIds": [
-        "mm_match_1778939348695_0"
-      ],
-      "eloChangeA": 0,
-      "eloChangeB": 0
-    }
-  ],
+  "matches": [],
   "matchMaps": [
     {
       "id": "mm_match_1778939330805_0",
@@ -80,15 +63,6 @@
     {
       "id": "mm_match_1778939336666_0",
       "matchId": "match_1778939336666",
-      "mapName": "Mirage",
-      "scoreA": 13,
-      "scoreB": 4,
-      "pickTeam": null,
-      "order": 1
-    },
-    {
-      "id": "mm_match_1778939348695_0",
-      "matchId": "match_1778939348695",
       "mapName": "Mirage",
       "scoreA": 13,
       "scoreB": 4,
