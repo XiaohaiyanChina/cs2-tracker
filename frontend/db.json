@@ -35,7 +35,20 @@
       "createdAt": "2026-05-16"
     }
   ],
-  "tournaments": [],
+  "tournaments": [
+    {
+      "id": "tour_1778939287738",
+      "name": "123",
+      "description": "123",
+      "format": "single-elim",
+      "status": "finished",
+      "startDate": "2026-05-16",
+      "endDate": "2026-05-16",
+      "teams": [
+        "team_1778919358778"
+      ]
+    }
+  ],
   "matches": [],
   "matchMaps": [],
   "matchStats": [
