@@ -1,12 +1,12 @@
 import { useParams, Link } from 'react-router-dom';
 import { useTournament, useMatches, useTeams } from '../hooks/useData';
-import { ChevronLeft, Trophy, Clock, Plus, Save, X, Edit3, Trash2, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { ChevronLeft, Trophy, Clock, Save, X, Edit3, Trash2, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { useMemo, useState, useRef, useEffect, useCallback } from 'react';
 import { isAuthenticated } from '../utils/auth';
 import { API_BASE } from '../utils/config';
 import { generateDoubleElimBracket } from '../utils/bracket';
 import { calcEloChange } from '../utils/elo';
-import type { BracketSlot, Match, Team, MatchFormat } from '../types';
+import type { BracketSlot, Match, Team } from '../types';
 
 function TeamLogo({ team, size = 'md' }: { team: Team | null | undefined; size?: 'sm' | 'md' }) {
   const s = size === 'sm' ? 'w-5 h-5 text-[10px]' : 'w-7 h-7 text-xs';
@@ -223,8 +223,6 @@ export default function TournamentDetail() {
   // Admin editing
   const [editingSlotId, setEditingSlotId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ date: '', teamAId: '', teamBId: '', scoreA: '', scoreB: '' });
-  const [showNewMatch, setShowNewMatch] = useState(false);
-  const [newMatchForm, setNewMatchForm] = useState({ date: '', teamAId: '', teamBId: '', format: 'bo3' as MatchFormat, scoreA: '', scoreB: '' });
 
   const bracketRef = useRef<HTMLDivElement | null>(null);
   const [, setRefreshKey] = useState(0);
@@ -312,18 +310,6 @@ export default function TournamentDetail() {
     setRefreshKey(k => k + 1);
   };
 
-  const addMatch = async () => {
-    if (!isAdmin) return;
-    if (!newMatchForm.teamAId || !newMatchForm.teamBId || !newMatchForm.date) return alert('请填写完整信息');
-    await fetch(`${API_BASE}/matches`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: `match_${Date.now()}`, tournamentId: id || '', teamAId: newMatchForm.teamAId, teamBId: newMatchForm.teamBId, scoreA: parseInt(newMatchForm.scoreA) || 0, scoreB: parseInt(newMatchForm.scoreB) || 0, date: newMatchForm.date, status: (newMatchForm.scoreA && newMatchForm.scoreB) ? 'finished' as const : 'upcoming' as const, format: newMatchForm.format, mapIds: [], eloChangeA: 0, eloChangeB: 0 }),
-    });
-    refreshMatches();
-    setShowNewMatch(false);
-    setNewMatchForm({ date: '', teamAId: '', teamBId: '', format: 'bo3', scoreA: '', scoreB: '' });
-  };
-
   const deleteScheduleMatch = async (matchId: string) => {
     if (!isAdmin || !confirm('确定删除此比赛？')) return;
     await fetch(`${API_BASE}/matches/${matchId}`, { method: 'DELETE' });
@@ -391,7 +377,7 @@ export default function TournamentDetail() {
       </div>
 
       {/* Bracket Section */}
-      {bracketSlots.length > 0 && (
+      {(
         <div className="bg-white border border-gray-200 rounded-xl p-5 mb-6 shadow-sm">
           <div className="flex items-center justify-between mb-2">
             <h2 className="font-semibold text-gray-900 flex items-center gap-2">
@@ -497,6 +483,24 @@ export default function TournamentDetail() {
           </div>
         </div>
       )}
+      {bracketSlots.length === 0 && (
+        <div className="bg-white border border-gray-200 rounded-xl p-8 mb-6 shadow-sm text-center">
+          <Trophy className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+          <h3 className="text-gray-500 font-medium mb-1">暂无对阵图</h3>
+          <p className="text-sm text-gray-400">
+            {tournament.format === 'double-elim' && tournament.teams.length >= 4
+              ? '对阵图数据丢失，请管理员重新生成'
+              : tournament.teams.length < 4
+                ? '需要至少4支队伍才能生成对阵图'
+                : '当前赛事格式不支持自动生成对阵图'}
+          </p>
+          {isAdmin && (
+            <Link to="/admin" className="inline-block mt-3 text-sm text-primary hover:underline">
+              前往管理员面板创建
+            </Link>
+          )}
+        </div>
+      )}
 
       {/* Edit Slot Modal */}
       {editingSlotId && (() => {
@@ -553,37 +557,7 @@ export default function TournamentDetail() {
           <h2 className="font-semibold text-gray-900 flex items-center gap-2">
             <Clock className="w-5 h-5 text-primary" /> 赛程表 ({matches.length})
           </h2>
-          {isAdmin && (
-            <button onClick={() => setShowNewMatch(!showNewMatch)} className="flex items-center gap-1 text-xs px-3 py-1.5 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors">
-              <Plus className="w-3.5 h-3.5" /> 添加比赛
-            </button>
-          )}
         </div>
-
-        {showNewMatch && (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
-              <input type="datetime-local" value={newMatchForm.date} onChange={e => setNewMatchForm({ ...newMatchForm, date: e.target.value })} className="border border-gray-200 rounded px-3 py-1.5 text-sm" />
-              <select value={newMatchForm.teamAId} onChange={e => setNewMatchForm({ ...newMatchForm, teamAId: e.target.value })} className="border border-gray-200 rounded px-3 py-1.5 text-sm">
-                <option value="">队伍 A</option>
-                {tournament.teams?.map(tid => { const t = teams?.find(x => x.id === tid); return t ? <option key={tid} value={tid}>{t.name}</option> : null; })}
-              </select>
-              <select value={newMatchForm.teamBId} onChange={e => setNewMatchForm({ ...newMatchForm, teamBId: e.target.value })} className="border border-gray-200 rounded px-3 py-1.5 text-sm">
-                <option value="">队伍 B</option>
-                {tournament.teams?.map(tid => { const t = teams?.find(x => x.id === tid); return t ? <option key={tid} value={tid}>{t.name}</option> : null; })}
-              </select>
-              <select value={newMatchForm.format} onChange={e => setNewMatchForm({ ...newMatchForm, format: e.target.value as MatchFormat })} className="border border-gray-200 rounded px-3 py-1.5 text-sm">
-                <option value="bo1">BO1</option><option value="bo3">BO3</option><option value="bo5">BO5</option>
-              </select>
-              <input type="number" min="0" placeholder="比分A" value={newMatchForm.scoreA} onChange={e => setNewMatchForm({ ...newMatchForm, scoreA: e.target.value })} className="border border-gray-200 rounded px-3 py-1.5 text-sm" />
-              <input type="number" min="0" placeholder="比分B" value={newMatchForm.scoreB} onChange={e => setNewMatchForm({ ...newMatchForm, scoreB: e.target.value })} className="border border-gray-200 rounded px-3 py-1.5 text-sm" />
-            </div>
-            <div className="flex gap-2">
-              <button onClick={addMatch} className="px-4 py-1.5 bg-primary text-white rounded text-sm">添加</button>
-              <button onClick={() => setShowNewMatch(false)} className="px-4 py-1.5 bg-gray-100 text-gray-600 rounded text-sm">取消</button>
-            </div>
-          </div>
-        )}
 
         {matches.length > 0 ? (
           <div className="overflow-x-auto">
