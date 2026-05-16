@@ -1,27 +1,6 @@
 {
   "players": [
     {
-      "id": "p9",
-      "nickname": "frozen",
-      "avatar": "",
-      "realName": "David Čerňanský",
-      "age": 21,
-      "gender": "男",
-      "steamId": "STEAM_1:0:901234",
-      "isCoach": false,
-      "attributes": {
-        "rating30": 72,
-        "firepower": 84,
-        "entrying": 78,
-        "trading": 68,
-        "opening": 74,
-        "clutching": 68,
-        "sniping": 44,
-        "utility": 70
-      },
-      "createdAt": "2025-02-15"
-    },
-    {
       "id": "p10",
       "nickname": "EliGE",
       "avatar": "",
