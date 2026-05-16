@@ -423,37 +423,6 @@
   ],
   "teams": [
     {
-      "id": "t1",
-      "name": "Vitality",
-      "logo": "",
-      "tag": "VIT",
-      "members": [
-        "p1",
-        "p14",
-        "p15",
-        "p7"
-      ],
-      "coach": "p13",
-      "elo": 1150,
-      "achievements": [
-        {
-          "id": "a1",
-          "teamId": "t1",
-          "tournamentName": "IEM Katowice 2025",
-          "placement": "冠军",
-          "date": "2025-02-09"
-        },
-        {
-          "id": "a2",
-          "teamId": "t1",
-          "tournamentName": "周末娱乐赛 Week 1",
-          "placement": "冠军",
-          "date": "2025-02-23"
-        }
-      ],
-      "createdAt": "2025-01-15"
-    },
-    {
       "id": "t2",
       "name": "FaZe Clan",
       "logo": "",
