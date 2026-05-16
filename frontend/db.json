@@ -1,27 +1,6 @@
 {
   "players": [
     {
-      "id": "p19",
-      "nickname": "B1t",
-      "avatar": "",
-      "realName": "Valeriy Vakhovskiy",
-      "age": 21,
-      "gender": "男",
-      "steamId": "STEAM_1:0:999999",
-      "isCoach": false,
-      "attributes": {
-        "rating30": 66,
-        "firepower": 78,
-        "entrying": 62,
-        "trading": 64,
-        "opening": 60,
-        "clutching": 58,
-        "sniping": 45,
-        "utility": 66
-      },
-      "createdAt": "2025-02-15"
-    },
-    {
       "id": "p20",
       "nickname": "device",
       "avatar": "",
