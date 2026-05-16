@@ -164,7 +164,7 @@ export default async function handler(req, res) {
       // Handle cascading deletes
       if (collection === 'matches') {
         // Also delete related matchMaps and matchStats
-        const mapIds = new Set<string>();
+        const mapIds = new Set();
         for (const m of db.matches) {
           if (idSet.has(m.id)) {
             m.mapIds?.forEach(mid => mapIds.add(mid));
