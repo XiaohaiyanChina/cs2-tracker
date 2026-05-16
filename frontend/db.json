@@ -423,23 +423,6 @@
   ],
   "teams": [
     {
-      "id": "t5",
-      "name": "NAVI",
-      "logo": "",
-      "tag": "NAVI",
-      "members": [
-        "p2",
-        "p19",
-        "p18",
-        "p16",
-        "p7"
-      ],
-      "coach": null,
-      "elo": 1020,
-      "achievements": [],
-      "createdAt": "2025-02-10"
-    },
-    {
       "id": "t6",
       "name": "MOUZ",
       "logo": "",
