@@ -48,7 +48,21 @@
       "createdAt": "2026-05-16"
     }
   ],
-  "tournaments": [],
+  "tournaments": [
+    {
+      "id": "tour_1778940972452",
+      "name": "Lucky Dog友谊赛-S1",
+      "description": "",
+      "format": "single-elim",
+      "status": "finished",
+      "startDate": "2026-03-21",
+      "endDate": "2026-03-21",
+      "teams": [
+        "team_1778919358778",
+        "team_1778940016495"
+      ]
+    }
+  ],
   "matches": [],
   "matchMaps": [
     {
