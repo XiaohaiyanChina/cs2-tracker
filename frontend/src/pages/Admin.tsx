@@ -755,6 +755,7 @@ function MatchEditor({ onMsg }: { onMsg: (s: string) => void }) {
     }
 
     refreshMatches();
+    refreshMaps();
     refreshTeams();
     onMsg(`比赛已录入！ELO: ${teamA.name} ${changeA > 0 ? '+' : ''}${changeA}, ${teamB.name} ${changeB > 0 ? '+' : ''}${changeB}`);
     setScoreA(0); setScoreB(0);
