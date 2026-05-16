@@ -1,27 +1,6 @@
 {
   "players": [
     {
-      "id": "p8",
-      "nickname": "broky",
-      "avatar": "",
-      "realName": "Helvijs Saukants",
-      "age": 23,
-      "gender": "男",
-      "steamId": "STEAM_1:0:890123",
-      "isCoach": false,
-      "attributes": {
-        "rating30": 60,
-        "firepower": 68,
-        "entrying": 55,
-        "trading": 60,
-        "opening": 52,
-        "clutching": 72,
-        "sniping": 88,
-        "utility": 65
-      },
-      "createdAt": "2025-02-10"
-    },
-    {
       "id": "p9",
       "nickname": "frozen",
       "avatar": "",
