@@ -106,6 +106,22 @@ export default async function handler(req, res) {
   const parsed = parseRoute(segments);
 
   // --- Special endpoints ---
+  if (parsed.special === 'status') {
+    try {
+      const db = await readDB();
+      return res.json({
+        ok: true,
+        tokenConfigured: !!TOKEN,
+        owner: OWNER,
+        repo: REPO,
+        branch: BRANCH,
+        collections: COLLECTIONS.reduce((acc, c) => ({ ...acc, [c]: db[c]?.length || 0 }), {}),
+      });
+    } catch (e) {
+      return res.json({ ok: false, tokenConfigured: !!TOKEN, error: e.message });
+    }
+  }
+
   if (parsed.special === 'export') {
     if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
     try {
