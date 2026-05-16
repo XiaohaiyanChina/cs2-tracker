@@ -22,27 +22,6 @@
       "createdAt": "2025-01-20"
     },
     {
-      "id": "p5",
-      "nickname": "donk",
-      "avatar": "",
-      "realName": "Danil Kryshkovets",
-      "age": 17,
-      "gender": "男",
-      "steamId": "STEAM_1:0:567890",
-      "isCoach": false,
-      "attributes": {
-        "rating30": 82,
-        "firepower": 95,
-        "entrying": 95,
-        "trading": 55,
-        "opening": 92,
-        "clutching": 70,
-        "sniping": 38,
-        "utility": 50
-      },
-      "createdAt": "2025-02-01"
-    },
-    {
       "id": "p6",
       "nickname": "ropz",
       "avatar": "",
