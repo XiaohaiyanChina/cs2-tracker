@@ -72,26 +72,7 @@
       ]
     }
   ],
-  "matches": [
-    {
-      "id": "match_1778941096971",
-      "tournamentId": "tour_1778940972452",
-      "teamAId": "team_1778919358778",
-      "teamBId": "team_1778940016495",
-      "scoreA": 1,
-      "scoreB": 2,
-      "date": "2026-03-21T14:32:00.000Z",
-      "status": "finished",
-      "format": "bo3",
-      "mapIds": [
-        "mm_match_1778941096971_0",
-        "mm_match_1778941096971_1",
-        "mm_match_1778941096971_2"
-      ],
-      "eloChangeA": -16,
-      "eloChangeB": 16
-    }
-  ],
+  "matches": [],
   "matchMaps": [
     {
       "id": "mm_match_1778939330805_0",
@@ -108,15 +89,6 @@
       "mapName": "Mirage",
       "scoreA": 13,
       "scoreB": 4,
-      "pickTeam": null,
-      "order": 1
-    },
-    {
-      "id": "mm_match_1778941096971_0",
-      "matchId": "match_1778941096971",
-      "mapName": "Inferno",
-      "scoreA": 8,
-      "scoreB": 13,
       "pickTeam": null,
       "order": 1
     }
