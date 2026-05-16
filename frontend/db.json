@@ -51,7 +51,7 @@
   ],
   "matches": [
     {
-      "id": "match_1778939330805",
+      "id": "match_1778939331995",
       "tournamentId": "tour_1778939287738",
       "teamAId": "team_1778919358778",
       "teamBId": "team_1778919358778",
@@ -61,7 +61,7 @@
       "status": "finished",
       "format": "bo1",
       "mapIds": [
-        "mm_match_1778939330805_0"
+        "mm_match_1778939331995_0"
       ],
       "eloChangeA": 16,
       "eloChangeB": -16
