@@ -1,27 +1,6 @@
 {
   "players": [
     {
-      "id": "p17",
-      "nickname": "Magisk",
-      "avatar": "",
-      "realName": "Emil Reif",
-      "age": 25,
-      "gender": "男",
-      "steamId": "STEAM_1:0:777777",
-      "isCoach": false,
-      "attributes": {
-        "rating30": 66,
-        "firepower": 72,
-        "entrying": 65,
-        "trading": 72,
-        "opening": 62,
-        "clutching": 60,
-        "sniping": 38,
-        "utility": 74
-      },
-      "createdAt": "2025-02-05"
-    },
-    {
       "id": "p18",
       "nickname": "jL",
       "avatar": "",
