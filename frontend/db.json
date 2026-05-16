@@ -1,27 +1,6 @@
 {
   "players": [
     {
-      "id": "p18",
-      "nickname": "jL",
-      "avatar": "",
-      "realName": "Justinas Lekavičius",
-      "age": 23,
-      "gender": "男",
-      "steamId": "STEAM_1:0:888888",
-      "isCoach": false,
-      "attributes": {
-        "rating30": 64,
-        "firepower": 70,
-        "entrying": 68,
-        "trading": 65,
-        "opening": 64,
-        "clutching": 62,
-        "sniping": 40,
-        "utility": 68
-      },
-      "createdAt": "2025-02-10"
-    },
-    {
       "id": "p19",
       "nickname": "B1t",
       "avatar": "",
