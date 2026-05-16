@@ -1,27 +1,6 @@
 {
   "players": [
     {
-      "id": "p15",
-      "nickname": "flameZ",
-      "avatar": "",
-      "realName": "Shahar Shushan",
-      "age": 21,
-      "gender": "男",
-      "steamId": "STEAM_1:0:555555",
-      "isCoach": false,
-      "attributes": {
-        "rating30": 65,
-        "firepower": 74,
-        "entrying": 78,
-        "trading": 60,
-        "opening": 72,
-        "clutching": 55,
-        "sniping": 36,
-        "utility": 58
-      },
-      "createdAt": "2025-02-01"
-    },
-    {
       "id": "p16",
       "nickname": "sh1ro",
       "avatar": "",
