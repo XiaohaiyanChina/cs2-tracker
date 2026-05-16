@@ -1,27 +1,6 @@
 {
   "players": [
     {
-      "id": "p14",
-      "nickname": "Spinx",
-      "avatar": "",
-      "realName": "Lotan Giladi",
-      "age": 23,
-      "gender": "男",
-      "steamId": "STEAM_1:0:444444",
-      "isCoach": false,
-      "attributes": {
-        "rating30": 70,
-        "firepower": 80,
-        "entrying": 74,
-        "trading": 66,
-        "opening": 70,
-        "clutching": 72,
-        "sniping": 42,
-        "utility": 65
-      },
-      "createdAt": "2025-01-20"
-    },
-    {
       "id": "p15",
       "nickname": "flameZ",
       "avatar": "",
