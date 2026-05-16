@@ -318,23 +318,6 @@
   ],
   "teams": [
     {
-      "id": "t6",
-      "name": "MOUZ",
-      "logo": "",
-      "tag": "MOUZ",
-      "members": [
-        "p9",
-        "p8",
-        "p17",
-        "p15",
-        "p10"
-      ],
-      "coach": null,
-      "elo": 1000,
-      "achievements": [],
-      "createdAt": "2025-02-15"
-    },
-    {
       "id": "t7",
       "name": "Cloud9",
       "logo": "",
