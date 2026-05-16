@@ -109,13 +109,13 @@
       ],
       "bracketSlots": [
         {
-          "id": "slot_tour_1778947510958_semi_0",
-          "round": "ub_semi",
-          "label": "半决赛",
+          "id": "slot_tour_1778947510958_qf_0",
+          "round": "ub_quarter",
+          "label": "1/4决赛",
           "matchId": null,
           "teamAId": "team_1778919358778",
           "teamBId": "team_1778940016495",
-          "nextWinSlotId": "slot_tour_1778947510958_final",
+          "nextWinSlotId": "slot_tour_1778947510958_semi_0",
           "nextLoseSlotId": null,
           "sourceA": "fixed",
           "sourceB": "fixed",
@@ -123,18 +123,74 @@
           "sourceSlotBId": null
         },
         {
-          "id": "slot_tour_1778947510958_semi_1",
-          "round": "ub_semi",
-          "label": "半决赛",
+          "id": "slot_tour_1778947510958_qf_1",
+          "round": "ub_quarter",
+          "label": "1/4决赛",
           "matchId": null,
           "teamAId": "team_1778947481959",
           "teamBId": "team_1778947486359",
-          "nextWinSlotId": "slot_tour_1778947510958_final",
+          "nextWinSlotId": "slot_tour_1778947510958_semi_0",
           "nextLoseSlotId": null,
           "sourceA": "fixed",
           "sourceB": "fixed",
           "sourceSlotAId": null,
           "sourceSlotBId": null
+        },
+        {
+          "id": "slot_tour_1778947510958_qf_2",
+          "round": "ub_quarter",
+          "label": "1/4决赛",
+          "matchId": null,
+          "teamAId": null,
+          "teamBId": null,
+          "nextWinSlotId": "slot_tour_1778947510958_semi_1",
+          "nextLoseSlotId": null,
+          "sourceA": "fixed",
+          "sourceB": "fixed",
+          "sourceSlotAId": null,
+          "sourceSlotBId": null
+        },
+        {
+          "id": "slot_tour_1778947510958_qf_3",
+          "round": "ub_quarter",
+          "label": "1/4决赛",
+          "matchId": null,
+          "teamAId": null,
+          "teamBId": null,
+          "nextWinSlotId": "slot_tour_1778947510958_semi_1",
+          "nextLoseSlotId": null,
+          "sourceA": "fixed",
+          "sourceB": "fixed",
+          "sourceSlotAId": null,
+          "sourceSlotBId": null
+        },
+        {
+          "id": "slot_tour_1778947510958_semi_0",
+          "round": "ub_semi",
+          "label": "半决赛",
+          "matchId": null,
+          "teamAId": null,
+          "teamBId": null,
+          "nextWinSlotId": "slot_tour_1778947510958_final",
+          "nextLoseSlotId": null,
+          "sourceA": "winner_of",
+          "sourceB": "winner_of",
+          "sourceSlotAId": "slot_tour_1778947510958_qf_0",
+          "sourceSlotBId": "slot_tour_1778947510958_qf_1"
+        },
+        {
+          "id": "slot_tour_1778947510958_semi_1",
+          "round": "ub_semi",
+          "label": "半决赛",
+          "matchId": null,
+          "teamAId": null,
+          "teamBId": null,
+          "nextWinSlotId": "slot_tour_1778947510958_final",
+          "nextLoseSlotId": null,
+          "sourceA": "winner_of",
+          "sourceB": "winner_of",
+          "sourceSlotAId": "slot_tour_1778947510958_qf_2",
+          "sourceSlotBId": "slot_tour_1778947510958_qf_3"
         },
         {
           "id": "slot_tour_1778947510958_final",
@@ -151,7 +207,7 @@
           "sourceSlotBId": "slot_tour_1778947510958_semi_1"
         }
       ],
-      "bracketType": "4_single"
+      "bracketType": "8_single"
     }
   ],
   "matches": [
