@@ -322,15 +322,6 @@
       "order": 3
     },
     {
-      "id": "map26",
-      "matchId": "m11",
-      "mapName": "Nuke",
-      "scoreA": 13,
-      "scoreB": 5,
-      "pickTeam": null,
-      "order": 3
-    },
-    {
       "id": "map27",
       "matchId": "m12",
       "mapName": "Mirage",
