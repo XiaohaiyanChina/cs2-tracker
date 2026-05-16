@@ -318,22 +318,6 @@
   ],
   "teams": [
     {
-      "id": "t7",
-      "name": "Cloud9",
-      "logo": "",
-      "tag": "C9",
-      "members": [
-        "p14",
-        "p12",
-        "p16",
-        "p18"
-      ],
-      "coach": null,
-      "elo": 980,
-      "achievements": [],
-      "createdAt": "2025-03-01"
-    },
-    {
       "id": "t8",
       "name": "Astralis",
       "logo": "",
