@@ -421,15 +421,6 @@
       "order": 3
     },
     {
-      "id": "map34",
-      "matchId": "m14",
-      "mapName": "Ancient",
-      "scoreA": 8,
-      "scoreB": 13,
-      "pickTeam": "t3",
-      "order": 2
-    },
-    {
       "id": "map35",
       "matchId": "m14",
       "mapName": "Mirage",
