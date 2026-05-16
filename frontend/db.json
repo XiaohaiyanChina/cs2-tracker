@@ -875,20 +875,6 @@
       "headshotPercent": 35,
       "entryKills": 2,
       "clutches": 0
-    },
-    {
-      "id": "s50",
-      "matchMapId": "map26",
-      "playerId": "p9",
-      "kills": 22,
-      "deaths": 10,
-      "assists": 6,
-      "adr": 92.1,
-      "rating": 1.55,
-      "kpr": 0.92,
-      "headshotPercent": 40,
-      "entryKills": 5,
-      "clutches": 2
     }
   ],
   "news": [
