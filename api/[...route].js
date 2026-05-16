@@ -102,7 +102,13 @@ export default async function handler(req, res) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const segments = req.query.route;
+  // Vercel passes catch-all segments via req.query.route (array)
+  // Fallback: parse from URL path
+  let segments = req.query.route;
+  if (!segments || segments.length === 0) {
+    const path = req.url?.split('?')[0] || '';
+    segments = path.replace(/^\/api\//, '').split('/').filter(Boolean);
+  }
   const parsed = parseRoute(segments);
 
   // --- Special endpoints ---
