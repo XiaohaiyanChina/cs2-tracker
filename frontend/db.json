@@ -1,27 +1,6 @@
 {
   "players": [
     {
-      "id": "p16",
-      "nickname": "sh1ro",
-      "avatar": "",
-      "realName": "Dmitry Sokolov",
-      "age": 22,
-      "gender": "男",
-      "steamId": "STEAM_1:0:666666",
-      "isCoach": false,
-      "attributes": {
-        "rating30": 70,
-        "firepower": 76,
-        "entrying": 58,
-        "trading": 68,
-        "opening": 55,
-        "clutching": 80,
-        "sniping": 90,
-        "utility": 72
-      },
-      "createdAt": "2025-02-01"
-    },
-    {
       "id": "p17",
       "nickname": "Magisk",
       "avatar": "",
