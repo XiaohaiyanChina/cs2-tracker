@@ -6,7 +6,7 @@ import { calcEloChange, initialElo } from '../utils/elo';
 import { logout } from '../utils/auth';
 import ImageUpload from '../components/ImageUpload';
 import { Settings, Trophy, Users, Gamepad2, Swords, Save, Plus, Trash2, CheckCircle, X, ChevronDown, ChevronUp, LogOut, Download, Upload, Square, CheckSquare, Loader2 } from 'lucide-react';
-import type { PlayerAttributes, Achievement } from '../types';
+import type { PlayerAttributes, Achievement, PlayerHonor } from '../types';
 
 function Spinner() {
   return (
@@ -488,11 +488,15 @@ function PlayerEditor({ onMsg }: { onMsg: (s: string) => void }) {
   const [attrs, setAttrs] = useState<PlayerAttributes>({
     rating30: 80, firepower: 75, entrying: 70, trading: 72, opening: 68, clutching: 74, sniping: 65, utility: 70,
   });
+  const [honors, setHonors] = useState<PlayerHonor[]>([]);
+  const [honorTitle, setHonorTitle] = useState('');
+  const [honorTournament, setHonorTournament] = useState('');
 
   const reset = () => {
     setEditId(null); setNickname(''); setRealName(''); setAge(0); setGender('');
     setAvatar(''); setIsCoach(false);
     setAttrs({ rating30: 80, firepower: 75, entrying: 70, trading: 72, opening: 68, clutching: 74, sniping: 65, utility: 70 });
+    setHonors([]); setHonorTitle(''); setHonorTournament('');
   };
 
   const attrLabels: { key: keyof PlayerAttributes; label: string }[] = [
@@ -512,6 +516,7 @@ function PlayerEditor({ onMsg }: { onMsg: (s: string) => void }) {
       id: editId || ('player_' + Date.now()),
       nickname: nickname.trim(), realName: realName.trim(), age, gender, avatar,
       steamId: 'STEAM_1:0:' + Date.now(), isCoach, attributes: attrs,
+      honors: honors,
       createdAt: new Date().toISOString().split('T')[0],
     };
     const method = editId ? 'PUT' : 'POST';
@@ -536,6 +541,17 @@ function PlayerEditor({ onMsg }: { onMsg: (s: string) => void }) {
     setEditId(p.id); setNickname(p.nickname); setRealName(p.realName); setAge(p.age || 0);
     setGender(p.gender || ''); setAvatar(p.avatar || ''); setIsCoach(p.isCoach || false);
     setAttrs(p.attributes || { rating30: 80, firepower: 75, entrying: 70, trading: 72, opening: 68, clutching: 74, sniping: 65, utility: 70 });
+    setHonors(p.honors || []);
+  };
+
+  const addHonor = () => {
+    if (!honorTitle.trim() || !honorTournament.trim()) return;
+    setHonors(p => [...p, { id: 'honor_' + Date.now(), playerId: editId || '', title: honorTitle.trim(), tournamentName: honorTournament.trim(), date: new Date().toISOString().split('T')[0] }]);
+    setHonorTitle(''); setHonorTournament('');
+  };
+
+  const removeHonor = (hid: string) => {
+    setHonors(p => p.filter(h => h.id !== hid));
   };
 
   const remove = async (id: string) => {
@@ -610,6 +626,26 @@ function PlayerEditor({ onMsg }: { onMsg: (s: string) => void }) {
           </div>
         </div>
 
+        {/* Player Honors */}
+        <div>
+          <p className="text-xs text-gray-400 mb-2">个人荣誉</p>
+          {honors.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {honors.map(h => (
+                <span key={h.id} className="text-xs px-2 py-0.5 bg-yellow-50 rounded text-yellow-700 flex items-center gap-1">
+                  🏅 {h.title} — {h.tournamentName}
+                  <button onClick={() => removeHonor(h.id)} className="ml-1 text-red-400 hover:text-red-600"><X className="w-3 h-3" /></button>
+                </span>
+              ))}
+            </div>
+          )}
+          <div className="flex gap-2 items-center">
+            <input placeholder="荣誉名称 (如:MVP)" value={honorTitle} onChange={e => setHonorTitle(e.target.value)} className="border border-gray-200 rounded px-2 py-1 text-xs w-28" />
+            <input placeholder="赛事名称" value={honorTournament} onChange={e => setHonorTournament(e.target.value)} className="border border-gray-200 rounded px-2 py-1 text-xs w-32" />
+            <button onClick={addHonor} className="text-xs text-primary hover:underline">添加荣誉</button>
+          </div>
+        </div>
+
         <div className="flex gap-2">
           <button onClick={create} className="flex items-center gap-1.5 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors">
             <Save className="w-4 h-4" /> {editId ? '更新' : '添加'}
@@ -679,6 +715,7 @@ function MatchEditor({ onMsg }: { onMsg: (s: string) => void }) {
   const [expandMatchId, setExpandMatchId] = useState<string | null>(null);
   const [expandMapId, setExpandMapId] = useState<string | null>(null);
   const [editingStat, setEditingStat] = useState<{ matchMapId: string; playerId: string; kills: string; deaths: string; assists: string; adr: string; rating: string; kpr: string; hs: string; entry: string; clutches: string } | null>(null);
+  const [editingMap, setEditingMap] = useState<{ id: string; mapName: string; scoreA: string; scoreB: string } | null>(null);
 
   const mapOptions = ['Mirage', 'Inferno', 'Nuke', 'Ancient', 'Anubis', 'Vertigo', 'Dust2', 'Overpass', 'Train'];
 
@@ -793,6 +830,19 @@ function MatchEditor({ onMsg }: { onMsg: (s: string) => void }) {
     onMsg('数据已删除');
   };
 
+  const saveMap = async () => {
+    if (!editingMap) return;
+    const map = allMaps?.find(mm => mm.id === editingMap.id);
+    if (!map) return;
+    const updated = { ...map, mapName: editingMap.mapName, scoreA: parseInt(editingMap.scoreA) || 0, scoreB: parseInt(editingMap.scoreB) || 0 };
+    await fetch(`${API_BASE}/matchMaps/${editingMap.id}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated),
+    });
+    refreshMaps();
+    onMsg(`地图 ${editingMap.mapName} 比分已更新`);
+    setEditingMap(null);
+  };
+
   const startAddStat = (mapId: string) => {
     setEditingStat({ matchMapId: mapId, playerId: '', kills: '', deaths: '', assists: '', adr: '', rating: '', kpr: '', hs: '', entry: '', clutches: '' });
   };
@@ -902,6 +952,22 @@ function MatchEditor({ onMsg }: { onMsg: (s: string) => void }) {
                       const mapStats = (allStats || []).filter(s => s.matchMapId === mm.id);
                       return (
                         <div key={mm.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                          {editingMap?.id === mm.id ? (
+                            <div className="flex items-center gap-2 px-3 py-2">
+                              <select value={editingMap.mapName} onChange={e => setEditingMap({ ...editingMap, mapName: e.target.value })}
+                                className="border border-gray-200 rounded px-2 py-1 text-xs">
+                                {mapOptions.map(n => <option key={n} value={n}>{n}</option>)}
+                              </select>
+                              <input type="number" min="0" max="16" value={editingMap.scoreA} onChange={e => setEditingMap({ ...editingMap, scoreA: e.target.value })}
+                                className="border border-gray-200 rounded px-2 py-1 text-xs w-14 text-center" />
+                              <span className="text-gray-300 text-xs">:</span>
+                              <input type="number" min="0" max="16" value={editingMap.scoreB} onChange={e => setEditingMap({ ...editingMap, scoreB: e.target.value })}
+                                className="border border-gray-200 rounded px-2 py-1 text-xs w-14 text-center" />
+                              <div className="flex-1" />
+                              <button onClick={saveMap} className="flex items-center gap-1 px-2 py-1 bg-primary text-white rounded text-xs"><Save className="w-3 h-3" /> 保存</button>
+                              <button onClick={() => setEditingMap(null)} className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs"><X className="w-3 h-3" /></button>
+                            </div>
+                          ) : (
                           <div
                             onClick={() => setExpandMapId(mapExpanded ? null : mm.id)}
                             className="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-gray-50"
@@ -911,8 +977,13 @@ function MatchEditor({ onMsg }: { onMsg: (s: string) => void }) {
                               <span className="text-sm font-medium text-gray-700">{mm.mapName}</span>
                               <span className="text-xs text-gray-400">({mm.scoreA}:{mm.scoreB})</span>
                             </div>
-                            <span className="text-xs text-gray-400">{mapStats.length} 条数据</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-gray-400">{mapStats.length} 条数据</span>
+                              <button onClick={(e) => { e.stopPropagation(); setEditingMap({ id: mm.id, mapName: mm.mapName, scoreA: String(mm.scoreA), scoreB: String(mm.scoreB) }); setExpandMapId(null); }}
+                                className="text-xs text-primary hover:underline">编辑比分</button>
+                            </div>
                           </div>
+                          )}
 
                           {mapExpanded && (
                             <div className="border-t border-gray-100">

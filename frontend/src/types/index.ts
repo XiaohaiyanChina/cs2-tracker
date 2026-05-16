@@ -9,6 +9,14 @@ export interface PlayerAttributes {
   utility: number;
 }
 
+export interface PlayerHonor {
+  id: string;
+  playerId: string;
+  title: string;
+  tournamentName: string;
+  date: string;
+}
+
 export interface Player {
   id: string;
   nickname: string;
@@ -19,6 +27,7 @@ export interface Player {
   steamId: string;
   isCoach: boolean;
   attributes: PlayerAttributes;
+  honors?: PlayerHonor[];
   createdAt: string;
 }
 

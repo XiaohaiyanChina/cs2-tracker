@@ -297,8 +297,25 @@ export default function PlayerDetail() {
           </section>
         </div>
 
-        {/* Sidebar - Career Stats */}
+        {/* Sidebar - Honors + Career Stats */}
         <div className="space-y-6">
+          {player.honors && player.honors.length > 0 && (
+            <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+              <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <Medal className="w-4 h-4 text-primary" />
+                个人荣誉
+              </h3>
+              <div className="space-y-2">
+                {player.honors.map(h => (
+                  <div key={h.id} className="p-2 rounded-lg bg-yellow-50 border border-yellow-100">
+                    <p className="text-sm font-medium text-gray-800">{h.title}</p>
+                    <p className="text-xs text-gray-500">{h.tournamentName}</p>
+                    <p className="text-xs text-gray-400">{h.date}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
             <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
               <Medal className="w-4 h-4 text-primary" />
