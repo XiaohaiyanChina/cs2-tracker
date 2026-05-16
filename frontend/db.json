@@ -1,27 +1,5 @@
 {
-  "players": [
-    {
-      "id": "p20",
-      "nickname": "device",
-      "avatar": "",
-      "realName": "Nicolai Reedtz",
-      "age": 29,
-      "gender": "男",
-      "steamId": "STEAM_1:0:101010",
-      "isCoach": false,
-      "attributes": {
-        "rating30": 60,
-        "firepower": 70,
-        "entrying": 52,
-        "trading": 60,
-        "opening": 50,
-        "clutching": 68,
-        "sniping": 85,
-        "utility": 70
-      },
-      "createdAt": "2025-01-10"
-    }
-  ],
+  "players": [],
   "teams": [
     {
       "id": "team_1778919358778",
