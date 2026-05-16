@@ -5,8 +5,16 @@ import { API_BASE } from '../utils/config';
 import { calcEloChange, initialElo } from '../utils/elo';
 import { logout } from '../utils/auth';
 import ImageUpload from '../components/ImageUpload';
-import { Settings, Trophy, Users, Gamepad2, Swords, Save, Plus, Trash2, CheckCircle, X, ChevronDown, ChevronUp, LogOut, Download, Upload, Square, CheckSquare } from 'lucide-react';
+import { Settings, Trophy, Users, Gamepad2, Swords, Save, Plus, Trash2, CheckCircle, X, ChevronDown, ChevronUp, LogOut, Download, Upload, Square, CheckSquare, Loader2 } from 'lucide-react';
 import type { PlayerAttributes, Achievement } from '../types';
+
+function Spinner() {
+  return (
+    <div className="flex items-center justify-center py-12">
+      <Loader2 className="w-6 h-6 text-primary animate-spin" />
+    </div>
+  );
+}
 
 function BatchDeleteBar({ selected, onDelete, onClear }: { selected: string[]; onDelete: () => void; onClear: () => void }) {
   if (selected.length === 0) return null;
@@ -131,17 +139,17 @@ export default function Admin() {
         </div>
       )}
 
-      {tab === 'tournaments' && <TournamentEditor onMsg={setMsg} />}
-      {tab === 'teams' && <TeamEditor onMsg={setMsg} />}
-      {tab === 'players' && <PlayerEditor onMsg={setMsg} />}
-      {tab === 'matches' && <MatchEditor onMsg={setMsg} />}
+      <div style={{ display: tab === 'tournaments' ? 'block' : 'none' }}><TournamentEditor onMsg={setMsg} /></div>
+      <div style={{ display: tab === 'teams' ? 'block' : 'none' }}><TeamEditor onMsg={setMsg} /></div>
+      <div style={{ display: tab === 'players' ? 'block' : 'none' }}><PlayerEditor onMsg={setMsg} /></div>
+      <div style={{ display: tab === 'matches' ? 'block' : 'none' }}><MatchEditor onMsg={setMsg} /></div>
     </div>
   );
 }
 
 /* ============ TOURNAMENT EDITOR ============ */
 function TournamentEditor({ onMsg }: { onMsg: (s: string) => void }) {
-  const { data: tournaments, refresh: refreshTournaments } = useTournaments();
+  const { data: tournaments, loading: loadingTournaments, refresh: refreshTournaments } = useTournaments();
   const { data: teams } = useTeams();
   const [name, setName] = useState('');
   const [desc, setDesc] = useState('');
@@ -232,28 +240,30 @@ function TournamentEditor({ onMsg }: { onMsg: (s: string) => void }) {
 
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
         <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-          <h3 className="font-semibold text-gray-900">现有赛事 ({tournaments?.length || 0})</h3>
+          <h3 className="font-semibold text-gray-900">现有赛事 ({loadingTournaments ? '...' : tournaments?.length || 0})</h3>
           <button onClick={selectAll} className="text-xs text-gray-400 hover:text-primary flex items-center gap-1">
             {selected.length > 0 && selected.length === (tournaments?.length ?? 0) ? <CheckSquare className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />}
             全选
           </button>
         </div>
         <BatchDeleteBar selected={selected} onDelete={batchRemove} onClear={() => setSelected([])} />
-        <table className="data-table">
-          <thead><tr><th className="w-8"></th><th>名称</th><th>状态</th><th>日期</th><th>队伍</th><th className="w-16"></th></tr></thead>
-          <tbody>
-            {tournaments?.map(t => (
-              <tr key={t.id}>
-                <td><button onClick={() => toggleSelect(t.id)} className="text-gray-300 hover:text-primary">{selected.includes(t.id) ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}</button></td>
-                <td className="font-medium text-gray-900">{t.name}</td>
-                <td><span className={`text-xs px-2 py-0.5 rounded ${t.status === 'ongoing' ? 'bg-green-100 text-green-700' : t.status === 'upcoming' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>{t.status === 'ongoing' ? '进行中' : t.status === 'upcoming' ? '即将' : '已结束'}</span></td>
-                <td className="text-gray-500 text-sm">{t.startDate} ~ {t.endDate}</td>
-                <td className="text-gray-500 text-sm">{t.teams?.length || 0} 队</td>
-                <td><button onClick={() => remove(t.id)} className="text-red-500 hover:text-red-700 text-xs"><Trash2 className="w-3.5 h-3.5" /></button></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {loadingTournaments ? <Spinner /> : (
+          <table className="data-table">
+            <thead><tr><th className="w-8"></th><th>名称</th><th>状态</th><th>日期</th><th>队伍</th><th className="w-16"></th></tr></thead>
+            <tbody>
+              {tournaments?.map(t => (
+                <tr key={t.id}>
+                  <td><button onClick={() => toggleSelect(t.id)} className="text-gray-300 hover:text-primary">{selected.includes(t.id) ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}</button></td>
+                  <td className="font-medium text-gray-900">{t.name}</td>
+                  <td><span className={`text-xs px-2 py-0.5 rounded ${t.status === 'ongoing' ? 'bg-green-100 text-green-700' : t.status === 'upcoming' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>{t.status === 'ongoing' ? '进行中' : t.status === 'upcoming' ? '即将' : '已结束'}</span></td>
+                  <td className="text-gray-500 text-sm">{t.startDate} ~ {t.endDate}</td>
+                  <td className="text-gray-500 text-sm">{t.teams?.length || 0} 队</td>
+                  <td><button onClick={() => remove(t.id)} className="text-red-500 hover:text-red-700 text-xs"><Trash2 className="w-3.5 h-3.5" /></button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );
@@ -261,7 +271,7 @@ function TournamentEditor({ onMsg }: { onMsg: (s: string) => void }) {
 
 /* ============ TEAM EDITOR ============ */
 function TeamEditor({ onMsg }: { onMsg: (s: string) => void }) {
-  const { data: teams, refresh: refreshTeams } = useTeams();
+  const { data: teams, loading: loadingTeams, refresh: refreshTeams } = useTeams();
   const { data: players } = usePlayers();
   const [name, setName] = useState('');
   const [tag, setTag] = useState('');
@@ -401,14 +411,14 @@ function TeamEditor({ onMsg }: { onMsg: (s: string) => void }) {
       {/* Team List */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
         <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-          <h3 className="font-semibold text-gray-900">现有战队 ({teams?.length || 0})</h3>
+          <h3 className="font-semibold text-gray-900">现有战队 ({loadingTeams ? '...' : teams?.length || 0})</h3>
           <button onClick={selectAll} className="text-xs text-gray-400 hover:text-primary flex items-center gap-1">
             {selected.length > 0 && selected.length === (teams?.length ?? 0) ? <CheckSquare className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />}
             全选
           </button>
         </div>
         <BatchDeleteBar selected={selected} onDelete={batchRemove} onClear={() => setSelected([])} />
-        {teams?.map(t => (
+        {loadingTeams ? <Spinner /> : teams?.map(t => (
           <div key={t.id} className="border-b border-gray-100 p-4 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -464,7 +474,7 @@ function TeamEditor({ onMsg }: { onMsg: (s: string) => void }) {
 
 /* ============ PLAYER EDITOR ============ */
 function PlayerEditor({ onMsg }: { onMsg: (s: string) => void }) {
-  const { data: players, refresh: refreshPlayers } = usePlayers();
+  const { data: players, loading: loadingPlayers, refresh: refreshPlayers } = usePlayers();
   const { data: teams, refresh: refreshTeams } = useTeams();
 
   const [editId, setEditId] = useState<string | null>(null);
@@ -611,13 +621,14 @@ function PlayerEditor({ onMsg }: { onMsg: (s: string) => void }) {
       {/* Player list */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
         <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-          <h3 className="font-semibold text-gray-900">现有选手 ({players?.length || 0})</h3>
+          <h3 className="font-semibold text-gray-900">现有选手 ({loadingPlayers ? '...' : players?.length || 0})</h3>
           <button onClick={selectAll} className="text-xs text-gray-400 hover:text-primary flex items-center gap-1">
             {selected.length > 0 && selected.length === (players?.length ?? 0) ? <CheckSquare className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />}
             全选
           </button>
         </div>
         <BatchDeleteBar selected={selected} onDelete={batchRemove} onClear={() => setSelected([])} />
+        {loadingPlayers ? <Spinner /> : (
         <table className="data-table">
           <thead><tr><th className="w-8"></th><th>照片</th><th>昵称</th><th>姓名</th><th>年龄</th><th>类型</th><th className="w-16"></th></tr></thead>
           <tbody>
@@ -640,6 +651,7 @@ function PlayerEditor({ onMsg }: { onMsg: (s: string) => void }) {
             ))}
           </tbody>
         </table>
+        )}
       </div>
     </div>
   );
@@ -650,7 +662,7 @@ function MatchEditor({ onMsg }: { onMsg: (s: string) => void }) {
   const { data: tournaments } = useTournaments();
   const { data: teams, refresh: refreshTeams } = useTeams();
   const { data: players } = usePlayers();
-  const { data: matches, refresh: refreshMatches } = useMatches();
+  const { data: matches, loading: loadingMatches, refresh: refreshMatches } = useMatches();
   const { data: allMaps, refresh: refreshMaps } = useMatchMaps();
   const { data: allStats, refresh: refreshStats } = useMatchStats();
 
@@ -843,7 +855,7 @@ function MatchEditor({ onMsg }: { onMsg: (s: string) => void }) {
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
         <div className="p-4 border-b border-gray-200 flex items-center justify-between">
           <div>
-            <h3 className="font-semibold text-gray-900">比赛数据编辑 ({sortedMatches.length} 场)</h3>
+            <h3 className="font-semibold text-gray-900">比赛数据编辑 ({loadingMatches ? '...' : sortedMatches.length} 场)</h3>
             <p className="text-xs text-gray-400 mt-0.5">展开比赛 → 展开地图 → 添加/编辑选手数据</p>
           </div>
           <button onClick={selectAllMatches} className="text-xs text-gray-400 hover:text-primary flex items-center gap-1 shrink-0">
@@ -852,6 +864,7 @@ function MatchEditor({ onMsg }: { onMsg: (s: string) => void }) {
           </button>
         </div>
         <BatchDeleteBar selected={selectedMatches} onDelete={batchRemoveMatches} onClear={() => setSelectedMatches([])} />
+        {loadingMatches ? <Spinner /> : (
         <div className="divide-y divide-gray-100">
           {sortedMatches.map(m => {
             const isExpanded = expandMatchId === m.id;
@@ -988,6 +1001,7 @@ function MatchEditor({ onMsg }: { onMsg: (s: string) => void }) {
             );
           })}
         </div>
+          )}
       </div>
     </div>
   );
