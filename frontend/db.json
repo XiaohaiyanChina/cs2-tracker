@@ -421,15 +421,6 @@
       "order": 3
     },
     {
-      "id": "map33",
-      "matchId": "m14",
-      "mapName": "Dust2",
-      "scoreA": 13,
-      "scoreB": 10,
-      "pickTeam": "t1",
-      "order": 1
-    },
-    {
       "id": "map34",
       "matchId": "m14",
       "mapName": "Ancient",
