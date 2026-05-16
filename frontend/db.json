@@ -22,27 +22,6 @@
       "createdAt": "2025-01-20"
     },
     {
-      "id": "p6",
-      "nickname": "ropz",
-      "avatar": "",
-      "realName": "Robin Kool",
-      "age": 24,
-      "gender": "男",
-      "steamId": "STEAM_1:0:678901",
-      "isCoach": false,
-      "attributes": {
-        "rating30": 74,
-        "firepower": 82,
-        "entrying": 68,
-        "trading": 78,
-        "opening": 70,
-        "clutching": 85,
-        "sniping": 42,
-        "utility": 82
-      },
-      "createdAt": "2025-02-01"
-    },
-    {
       "id": "p7",
       "nickname": "Twistzz",
       "avatar": "",
