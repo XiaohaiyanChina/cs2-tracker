@@ -1,27 +1,6 @@
 {
   "players": [
     {
-      "id": "p1",
-      "nickname": "ZywOo",
-      "avatar": "",
-      "realName": "Mathieu Herbaut",
-      "age": 23,
-      "gender": "男",
-      "steamId": "STEAM_1:0:123456",
-      "isCoach": false,
-      "attributes": {
-        "rating30": 78,
-        "firepower": 88,
-        "entrying": 82,
-        "trading": 70,
-        "opening": 85,
-        "clutching": 90,
-        "sniping": 45,
-        "utility": 72
-      },
-      "createdAt": "2025-01-15"
-    },
-    {
       "id": "p2",
       "nickname": "s1mple",
       "avatar": "",
