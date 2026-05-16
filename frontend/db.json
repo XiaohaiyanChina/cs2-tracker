@@ -7,7 +7,7 @@
       "age": 17,
       "gender": "男",
       "avatar": "",
-      "steamId": "STEAM_1:0:1778922184865",
+      "steamId": "STEAM_1:0:1778942133899",
       "isCoach": false,
       "attributes": {
         "rating30": 87,
@@ -19,6 +19,15 @@
         "sniping": 83,
         "utility": 60
       },
+      "honors": [
+        {
+          "id": "honor_1778942133274",
+          "playerId": "player_1778922184865",
+          "title": "goat",
+          "tournamentName": "123",
+          "date": "2026-05-16"
+        }
+      ],
       "createdAt": "2026-05-16"
     }
   ],
