@@ -402,6 +402,15 @@
       "scoreB": 10,
       "pickTeam": null,
       "order": 3
+    },
+    {
+      "id": "mm_match_1778996305288_0",
+      "matchId": "match_1778996305288",
+      "mapName": "Inferno",
+      "scoreA": 8,
+      "scoreB": 13,
+      "pickTeam": null,
+      "order": 1
     }
   ],
   "matchStats": [
