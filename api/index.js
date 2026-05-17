@@ -23,30 +23,10 @@ async function readDB() {
   const now = Date.now();
   if (_cache && (now - _cacheTime) < 30000) return _cache;
 
-  // Try local file first (local dev or deployment with db.json present)
-  try {
-    if (existsSync(LOCAL_DB)) {
-      const raw = readFileSync(LOCAL_DB, 'utf-8');
-      _cache = JSON.parse(raw);
-      _cacheTime = now;
-      console.log(`[readDB] Loaded from local: ${LOCAL_DB}`);
-      return _cache;
-    }
-    // Fallback: try server/db.json for old deployments
-    const oldLocal = join(process.cwd(), 'server', 'db.json');
-    if (existsSync(oldLocal)) {
-      const raw = readFileSync(oldLocal, 'utf-8');
-      _cache = JSON.parse(raw);
-      _cacheTime = now;
-      console.log(`[readDB] Loaded from fallback local: ${oldLocal}`);
-      return _cache;
-    }
-  } catch (e) {
-    console.error('[readDB] Local read failed, trying GitHub:', e.message);
-  }
-
-  // Fetch from GitHub Contents API (bypasses CDN cache) when token available
+  // On Vercel (TOKEN available): always read from GitHub to get latest data
+  // Local file is stale (committed version) and must be skipped
   if (TOKEN) {
+    // Fetch from GitHub Contents API first (bypasses CDN cache)
     try {
       const apiHeaders = {
         'Authorization': `Bearer ${TOKEN}`,
@@ -68,22 +48,61 @@ async function readDB() {
     } catch (e) {
       console.error('[readDB] GitHub Contents API request failed:', e.message);
     }
+
+    // Fallback: GitHub raw URL
+    try {
+      const headers = {
+        'Authorization': `Bearer ${TOKEN}`,
+        'User-Agent': 'cs2-tracker',
+      };
+      const res = await fetch(RAW_URL, { headers });
+      if (res.ok) {
+        _cache = await res.json();
+        _cacheTime = now;
+        console.log(`[readDB] Loaded from GitHub raw (fallback): ${RAW_URL}`);
+        return _cache;
+      }
+      console.error('[readDB] GitHub raw fetch failed:', res.status);
+    } catch (e) {
+      console.error('[readDB] GitHub raw request failed:', e.message);
+    }
+
+    console.error('[readDB] All GitHub sources failed, returning empty DB');
+    return JSON.parse(JSON.stringify(EMPTY_DB));
   }
 
-  // Fallback: GitHub raw URL (may have CDN cache delay)
+  // Local dev / no token: try local files
   try {
-    const headers = { 'User-Agent': 'cs2-tracker' };
-    if (TOKEN) headers['Authorization'] = `Bearer ${TOKEN}`;
-    const res = await fetch(RAW_URL, { headers });
+    if (existsSync(LOCAL_DB)) {
+      const raw = readFileSync(LOCAL_DB, 'utf-8');
+      _cache = JSON.parse(raw);
+      _cacheTime = now;
+      console.log(`[readDB] Loaded from local: ${LOCAL_DB}`);
+      return _cache;
+    }
+    const oldLocal = join(process.cwd(), 'server', 'db.json');
+    if (existsSync(oldLocal)) {
+      const raw = readFileSync(oldLocal, 'utf-8');
+      _cache = JSON.parse(raw);
+      _cacheTime = now;
+      console.log(`[readDB] Loaded from fallback local: ${oldLocal}`);
+      return _cache;
+    }
+  } catch (e) {
+    console.error('[readDB] Local read failed:', e.message);
+  }
+
+  // Try GitHub raw as final fallback (no token, unauthenticated)
+  try {
+    const res = await fetch(RAW_URL, { headers: { 'User-Agent': 'cs2-tracker' } });
     if (res.ok) {
       _cache = await res.json();
       _cacheTime = now;
-      console.log(`[readDB] Loaded from GitHub raw: ${RAW_URL}`);
+      console.log(`[readDB] Loaded from GitHub raw (no token)`);
       return _cache;
     }
-    console.error('[readDB] GitHub raw fetch failed:', res.status);
   } catch (e) {
-    console.error('[readDB] GitHub raw request failed:', e.message);
+    console.error('[readDB] GitHub raw (no token) failed:', e.message);
   }
 
   console.error('[readDB] All read sources failed, returning empty DB');
