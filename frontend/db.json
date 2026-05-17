@@ -304,6 +304,54 @@
   ],
   "matches": [
     {
+      "id": "match_1778946607275",
+      "tournamentId": "tour_1778940972452",
+      "teamAId": "team_1778940016495",
+      "teamBId": "team_1778919358778",
+      "scoreA": 13,
+      "scoreB": 2,
+      "date": "2026-05-16T23:54",
+      "status": "finished",
+      "format": "bo3",
+      "mapIds": [],
+      "eloChangeA": 0,
+      "eloChangeB": 0
+    },
+    {
+      "id": "match_1778947679840",
+      "tournamentId": "tour_1778947510958",
+      "teamAId": "team_1778919358778",
+      "teamBId": "team_1778940016495",
+      "scoreA": 0,
+      "scoreB": 0,
+      "date": "2026-05-17T00:07",
+      "status": "upcoming",
+      "format": "bo3",
+      "mapIds": [
+        "mm_match_1778947679840_1778949616148"
+      ],
+      "eloChangeA": 0,
+      "eloChangeB": 0
+    },
+    {
+      "id": "match_1778996305288",
+      "tournamentId": "tour_1778996082443",
+      "teamAId": "team_1778919358778",
+      "teamBId": "team_1778940016495",
+      "scoreA": 1,
+      "scoreB": 2,
+      "date": "2026-03-13T13:34:00.000Z",
+      "status": "finished",
+      "format": "bo3",
+      "mapIds": [
+        "mm_match_1778996305288_0",
+        "mm_match_1778996305288_1",
+        "mm_match_1778996305288_2"
+      ],
+      "eloChangeA": -16,
+      "eloChangeB": 16
+    },
+    {
       "id": "match_1778997628249",
       "tournamentId": "tour_1778996082443",
       "teamAId": "team_1778919358778",
@@ -343,6 +391,15 @@
     },
     {
       "id": "mm_match_1778947679840_1778949614893",
+      "matchId": "match_1778947679840",
+      "mapName": "Mirage",
+      "scoreA": 0,
+      "scoreB": 0,
+      "pickTeam": null,
+      "order": 1
+    },
+    {
+      "id": "mm_match_1778947679840_1778949616148",
       "matchId": "match_1778947679840",
       "mapName": "Mirage",
       "scoreA": 0,
@@ -441,6 +498,19 @@
       "kpr": 1,
       "headshotPercent": 62,
       "entryKills": 2
+    },
+    {
+      "id": "stat_1778999876859",
+      "matchMapId": "mm_match_1778997628249_0",
+      "playerId": "player_1778957093574",
+      "kills": 123,
+      "deaths": 2,
+      "assists": 12,
+      "adr": 321,
+      "rating": 2,
+      "kpr": 2,
+      "headshotPercent": 99,
+      "entryKills": 32
     }
   ],
   "news": [
