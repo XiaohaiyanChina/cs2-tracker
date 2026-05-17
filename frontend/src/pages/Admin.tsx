@@ -22,7 +22,12 @@ async function apiWrite(path: string, options?: RequestInit) {
   const res = await fetch(`${API_BASE}${path}`, options);
   if (!res.ok) {
     let msg = `HTTP ${res.status}`;
-    try { const b = await res.json(); if (b.error) msg = b.error; } catch {}
+    try {
+      const b = await res.json();
+      if (b && b.error) msg = b.error;
+    } catch {
+      try { const t = await res.text(); if (t) msg = t.slice(0, 200); } catch {}
+    }
     throw new Error(msg);
   }
   return res.json();
