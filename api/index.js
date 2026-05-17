@@ -1,56 +1,52 @@
 // Vercel serverless API — all /api/* requests rewrite here
 // Parses the original URL to determine endpoint
 
+const fs = require('fs');
+const path = require('path');
+
 const OWNER = process.env.GITHUB_REPO_OWNER || 'XiaohaiyanChina';
 const REPO = process.env.GITHUB_REPO_NAME || 'cs2-tracker';
 const BRANCH = process.env.GITHUB_REPO_BRANCH || 'master';
-const DB_FILE = 'frontend/db.json';
 const TOKEN = process.env.GITHUB_TOKEN || '';
 
-const RAW_URL = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${DB_FILE}`;
-const API_URL = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${DB_FILE}`;
+const LOCAL_DB = path.join(process.cwd(), 'server', 'db.json');
+const API_URL = `https://api.github.com/repos/${OWNER}/${REPO}/contents/frontend/db.json`;
 
 const COLLECTIONS = ['players', 'teams', 'tournaments', 'matches', 'matchMaps', 'matchStats', 'news'];
 
 let _cache = null;
 let _cacheTime = 0;
 
-async function readDB() {
+const EMPTY_DB = { players: [], teams: [], tournaments: [], matches: [], matchMaps: [], matchStats: [], news: [] };
+
+function readDB() {
   const now = Date.now();
-  if (_cache && (now - _cacheTime) < 5000) {
-    return JSON.parse(JSON.stringify(_cache));
+  if (_cache && (now - _cacheTime) < 30000) return _cache;
+
+  try {
+    if (fs.existsSync(LOCAL_DB)) {
+      const raw = fs.readFileSync(LOCAL_DB, 'utf-8');
+      _cache = JSON.parse(raw);
+      _cacheTime = now;
+      return _cache;
+    }
+  } catch (e) {
+    console.error('读取数据库失败:', e.message);
   }
 
-  // With token: use GitHub API exclusively (always fresh, no CDN staleness)
-  if (TOKEN) {
-    const apiRes = await fetch(API_URL, {
-      headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'cs2-tracker', 'Accept': 'application/vnd.github+json' },
-    });
-    if (!apiRes.ok) throw new Error(`Read failed: ${apiRes.status}`);
-    const { content } = await apiRes.json();
-    if (!content) throw new Error('Empty content from GitHub API');
-    const data = JSON.parse(Buffer.from(content, 'base64').toString('utf-8'));
-    _cache = data;
-    _cacheTime = now;
-    return JSON.parse(JSON.stringify(data));
-  }
-
-  // No token: raw URL with cache-busting (CDN may still be slightly stale)
-  const res = await fetch(`${RAW_URL}?t=${now}`, { headers: { 'User-Agent': 'cs2-tracker' } });
-  if (!res.ok) throw new Error(`Read failed: ${res.status}`);
-  const data = await res.json();
-  _cache = data;
-  _cacheTime = now;
-  return JSON.parse(JSON.stringify(data));
+  return EMPTY_DB;
 }
 
 async function writeDB(data) {
-  if (!TOKEN) throw new Error('GITHUB_TOKEN not set');
+  _cache = data;
+  _cacheTime = Date.now();
+
+  if (!TOKEN) throw new Error('缺少 GITHUB_TOKEN 环境变量，无法保存数据。请在 Vercel 项目设置中添加 GITHUB_TOKEN');
 
   const getRes = await fetch(API_URL, {
     headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'cs2-tracker', 'Accept': 'application/vnd.github+json' },
   });
-  if (!getRes.ok) throw new Error(`Get SHA failed: ${getRes.status}`);
+  if (!getRes.ok) throw new Error(`GitHub 读取失败: ${getRes.status}`);
   const { sha } = await getRes.json();
 
   const content = Buffer.from(JSON.stringify(data, null, 2)).toString('base64');
@@ -64,11 +60,8 @@ async function writeDB(data) {
   });
   if (!putRes.ok) {
     const err = await putRes.json();
-    throw new Error(`Write failed: ${err.message}`);
+    throw new Error(`GitHub 写入失败: ${err.message}`);
   }
-
-  _cache = data;
-  _cacheTime = Date.now();
 }
 
 // Parse URL path like /api/players/p1 → parts ['api', 'players', 'p1']
@@ -106,7 +99,7 @@ module.exports = async function handler(req, res) {
   // --- Special endpoints ---
   if (parsed.special === 'status') {
     try {
-      const db = await readDB();
+      const db = readDB();
       return res.json({
         ok: true,
         tokenConfigured: !!TOKEN,
@@ -123,7 +116,7 @@ module.exports = async function handler(req, res) {
   if (parsed.special === 'export') {
     if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
     try {
-      const db = await readDB();
+      const db = readDB();
       return res.json({ ...db, exportedAt: new Date().toISOString() });
     } catch (e) {
       return res.status(500).json({ error: e.message });
@@ -133,7 +126,7 @@ module.exports = async function handler(req, res) {
   if (parsed.special === 'import') {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
     try {
-      const db = await readDB();
+      const db = readDB();
       for (const c of COLLECTIONS) {
         if (Array.isArray(req.body[c])) db[c] = req.body[c];
       }
@@ -157,7 +150,7 @@ module.exports = async function handler(req, res) {
         return res.status(400).json({ error: 'Invalid collection' });
       }
 
-      const db = await readDB();
+      const db = readDB();
       const before = db[collection].length;
       const idSet = new Set(ids);
 
@@ -200,7 +193,7 @@ module.exports = async function handler(req, res) {
   try {
     switch (req.method) {
       case 'GET': {
-        const db = await readDB();
+        const db = readDB();
         if (id) {
           const item = db[collection]?.find(x => x.id === id);
           if (!item) return res.status(404).json({ error: 'Not found' });
@@ -209,7 +202,7 @@ module.exports = async function handler(req, res) {
         return res.json(db[collection] || []);
       }
       case 'POST': {
-        const db = await readDB();
+        const db = readDB();
         const item = { ...req.body };
         if (!item.id) item.id = `${collection}_${Date.now()}`;
         db[collection].push(item);
@@ -217,7 +210,7 @@ module.exports = async function handler(req, res) {
         return res.status(201).json(item);
       }
       case 'PUT': {
-        const db = await readDB();
+        const db = readDB();
         const idx = db[collection]?.findIndex(x => x.id === id);
         if (idx === -1) return res.status(404).json({ error: 'Not found' });
         db[collection][idx] = { ...req.body, id };
@@ -225,7 +218,7 @@ module.exports = async function handler(req, res) {
         return res.json(db[collection][idx]);
       }
       case 'DELETE': {
-        const db = await readDB();
+        const db = readDB();
         const idx = db[collection]?.findIndex(x => x.id === id);
         if (idx === -1) return res.status(404).json({ error: 'Not found' });
         db[collection].splice(idx, 1);

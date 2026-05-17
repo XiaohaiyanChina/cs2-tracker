@@ -18,6 +18,16 @@ function Spinner() {
   );
 }
 
+async function apiWrite(path: string, options?: RequestInit) {
+  const res = await fetch(`${API_BASE}${path}`, options);
+  if (!res.ok) {
+    let msg = `HTTP ${res.status}`;
+    try { const b = await res.json(); if (b.error) msg = b.error; } catch {}
+    throw new Error(msg);
+  }
+  return res.json();
+}
+
 function BatchDeleteBar({ selected, onDelete, onClear }: { selected: string[]; onDelete: () => void; onClear: () => void }) {
   if (selected.length === 0) return null;
   return (
@@ -45,9 +55,13 @@ const TABS: { key: TabType; icon: typeof Trophy; label: string }[] = [
 export default function Admin() {
   const [tab, setTab] = useState<TabType>('tournaments');
   const navigate = useNavigate();
-  const [msg, setMsg] = useState('');
+  const [msg, setMsg] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
-  const clearMsg = () => setMsg('');
+  const clearMsg = () => setMsg(null);
+  const onMsg = (m: string | { text: string; type: 'success' | 'error' }) => {
+    if (typeof m === 'string') setMsg({ text: m, type: 'success' });
+    else setMsg(m);
+  };
 
   const handleLogout = () => {
     logout();
@@ -65,9 +79,9 @@ export default function Admin() {
       a.download = `cs2-tracker-backup-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      setMsg('数据备份已下载');
-    } catch {
-      setMsg('备份失败');
+      onMsg('数据备份已下载');
+    } catch (e: any) {
+      onMsg({ text: `备份失败: ${e.message}`, type: 'error' });
     }
   };
 
@@ -88,11 +102,13 @@ export default function Admin() {
         });
         const result = await res.json();
         if (result.ok) {
-          setMsg(`数据已恢复：${Object.entries(result.counts).map(([k, v]) => `${k} ${v}条`).join(', ')}`);
+          onMsg(`数据已恢复：${Object.entries(result.counts).map(([k, v]) => `${k} ${v}条`).join(', ')}`);
           setTimeout(() => window.location.reload(), 1000);
+        } else {
+          onMsg({ text: `恢复失败: ${result.error || '未知错误'}`, type: 'error' });
         }
-      } catch {
-        setMsg('恢复失败，请检查文件格式');
+      } catch (e: any) {
+        onMsg({ text: `恢复失败: ${e.message}`, type: 'error' });
       }
     };
     input.click();
@@ -136,8 +152,11 @@ export default function Admin() {
       </div>
 
       {msg && (
-        <div className="mb-4 p-3 rounded-lg bg-green-50 border border-green-200 text-green-700 text-sm flex items-center gap-2">
-          <CheckCircle className="w-4 h-4" /> {msg}
+        <div className={`mb-4 p-3 rounded-lg text-sm flex items-center gap-2 ${
+          msg.type === 'error' ? 'bg-red-50 border border-red-200 text-red-700' : 'bg-green-50 border border-green-200 text-green-700'
+        }`}>
+          {msg.type === 'error' ? <X className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
+          {msg.text}
           <button onClick={clearMsg} className="ml-auto"><X className="w-3.5 h-3.5" /></button>
         </div>
       )}
@@ -152,7 +171,7 @@ export default function Admin() {
 }
 
 /* ============ TOURNAMENT EDITOR ============ */
-function TournamentEditor({ onMsg }: { onMsg: (s: string) => void }) {
+function TournamentEditor({ onMsg }: { onMsg: (m: string | { text: string; type: 'success' | 'error' }) => void }) {
   const { data: tournaments, loading: loadingTournaments, refresh: refreshTournaments } = useTournaments();
   const { data: teams } = useTeams();
   const [name, setName] = useState('');
@@ -167,44 +186,55 @@ function TournamentEditor({ onMsg }: { onMsg: (s: string) => void }) {
 
   const create = async () => {
     if (!name.trim()) return alert('请输入赛事名称');
-    const tid = 'tour_' + Date.now();
-    const body: any = {
-      id: tid, name: name.trim(), description: desc, format, status,
-      startDate: startDate || new Date().toISOString().split('T')[0],
-      endDate: endDate || new Date().toISOString().split('T')[0],
-      teams: selTeams,
-    };
-    if (bracketType && selTeams.length >= 4) {
-      body.bracketType = bracketType;
-      body.bracketSlots = generateBracket(bracketType as any, tid, selTeams);
-    } else if (format === 'double-elim' && selTeams.length >= 4) {
-      body.bracketType = '4_double';
-      body.bracketSlots = generateBracket('4_double', tid, selTeams);
+    try {
+      const tid = 'tour_' + Date.now();
+      const body: any = {
+        id: tid, name: name.trim(), description: desc, format, status,
+        startDate: startDate || new Date().toISOString().split('T')[0],
+        endDate: endDate || new Date().toISOString().split('T')[0],
+        teams: selTeams,
+      };
+      if (bracketType && selTeams.length >= 4) {
+        body.bracketType = bracketType;
+        body.bracketSlots = generateBracket(bracketType as any, tid, selTeams);
+      } else if (format === 'double-elim' && selTeams.length >= 4) {
+        body.bracketType = '4_double';
+        body.bracketSlots = generateBracket('4_double', tid, selTeams);
+      }
+      await apiWrite('/tournaments', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      onMsg(`赛事 "${name}" 已创建`);
+      setName(''); setDesc(''); setSelTeams([]); refreshTournaments();
+    } catch (e: any) {
+      onMsg({ text: `创建失败: ${e.message}`, type: 'error' });
     }
-    const res = await fetch(`${API_BASE}/tournaments`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-    if (res.ok) { onMsg(`赛事 "${name}" 已创建`); setName(''); setDesc(''); setSelTeams([]); refreshTournaments(); }
   };
 
   const remove = async (id: string) => {
     if (!confirm('确定删除此赛事？')) return;
-    await fetch(`${API_BASE}/tournaments/${id}`, { method: 'DELETE' });
-    refreshTournaments();
-    onMsg('赛事已删除');
+    try {
+      await apiWrite(`/tournaments/${id}`, { method: 'DELETE' });
+      refreshTournaments();
+      onMsg('赛事已删除');
+    } catch (e: any) {
+      onMsg({ text: `删除失败: ${e.message}`, type: 'error' });
+    }
   };
 
   const batchRemove = async () => {
     if (!confirm(`确定批量删除 ${selected.length} 个赛事？`)) return;
-    const res = await fetch(`${API_BASE}/batch-delete`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ collection: 'tournaments', ids: selected }),
-    });
-    if (res.ok) {
+    try {
+      await apiWrite('/batch-delete', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ collection: 'tournaments', ids: selected }),
+      });
       refreshTournaments();
       onMsg(`已删除 ${selected.length} 个赛事`);
       setSelected([]);
+    } catch (e: any) {
+      onMsg({ text: `批量删除失败: ${e.message}`, type: 'error' });
     }
   };
 
@@ -296,7 +326,7 @@ function TournamentEditor({ onMsg }: { onMsg: (s: string) => void }) {
 }
 
 /* ============ TEAM EDITOR ============ */
-function TeamEditor({ onMsg }: { onMsg: (s: string) => void }) {
+function TeamEditor({ onMsg }: { onMsg: (m: string | { text: string; type: 'success' | 'error' }) => void }) {
   const { data: teams, loading: loadingTeams, refresh: refreshTeams } = useTeams();
   const { data: players } = usePlayers();
   const [name, setName] = useState('');
@@ -317,19 +347,23 @@ function TeamEditor({ onMsg }: { onMsg: (s: string) => void }) {
 
   const create = async () => {
     if (!name.trim() || !tag.trim()) return alert('请填写战队名和标签');
-    const body = {
-      id: editId || ('team_' + Date.now()),
-      name: name.trim(), tag: tag.trim().toUpperCase(), logo,
-      members: selMembers, coach: coach || null, elo: elo || initialElo(),
-      achievements: [] as Achievement[],
-      createdAt: new Date().toISOString().split('T')[0],
-    };
-    const method = editId ? 'PUT' : 'POST';
-    const url = editId ? `${API_BASE}/teams/${editId}` : `${API_BASE}/teams`;
-    await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    refreshTeams();
-    onMsg(editId ? `战队 "${name}" 已更新` : `战队 "${name}" 已创建`);
-    reset();
+    try {
+      const body = {
+        id: editId || ('team_' + Date.now()),
+        name: name.trim(), tag: tag.trim().toUpperCase(), logo,
+        members: selMembers, coach: coach || null, elo: elo || initialElo(),
+        achievements: [] as Achievement[],
+        createdAt: new Date().toISOString().split('T')[0],
+      };
+      const method = editId ? 'PUT' : 'POST';
+      const path = editId ? `/teams/${editId}` : '/teams';
+      await apiWrite(path, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      refreshTeams();
+      onMsg(editId ? `战队 "${name}" 已更新` : `战队 "${name}" 已创建`);
+      reset();
+    } catch (e: any) {
+      onMsg({ text: `保存失败: ${e.message}`, type: 'error' });
+    }
   };
 
   const startEdit = (t: typeof teams extends (infer U)[] | null ? U : never) => {
@@ -339,21 +373,27 @@ function TeamEditor({ onMsg }: { onMsg: (s: string) => void }) {
 
   const remove = async (id: string) => {
     if (!confirm('确定删除此战队？选手数据将保留')) return;
-    await fetch(`${API_BASE}/teams/${id}`, { method: 'DELETE' });
-    refreshTeams();
-    onMsg('战队已删除（选手数据保留）');
+    try {
+      await apiWrite(`/teams/${id}`, { method: 'DELETE' });
+      refreshTeams();
+      onMsg('战队已删除（选手数据保留）');
+    } catch (e: any) {
+      onMsg({ text: `删除失败: ${e.message}`, type: 'error' });
+    }
   };
 
   const batchRemove = async () => {
     if (!confirm(`确定批量删除 ${selected.length} 个战队？选手数据将保留`)) return;
-    const res = await fetch(`${API_BASE}/batch-delete`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ collection: 'teams', ids: selected }),
-    });
-    if (res.ok) {
+    try {
+      await apiWrite('/batch-delete', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ collection: 'teams', ids: selected }),
+      });
       refreshTeams();
       onMsg(`已删除 ${selected.length} 个战队`);
       setSelected([]);
+    } catch (e: any) {
+      onMsg({ text: `批量删除失败: ${e.message}`, type: 'error' });
     }
   };
 
@@ -372,23 +412,31 @@ function TeamEditor({ onMsg }: { onMsg: (s: string) => void }) {
 
   const addAchievement = async (teamId: string) => {
     if (!achTournament.trim()) return;
-    const team = teams?.find(t => t.id === teamId);
-    if (!team) return;
-    const ach: Achievement = { id: 'ach_' + Date.now(), teamId, tournamentName: achTournament, placement: achPlacement as Achievement['placement'], date: new Date().toISOString().split('T')[0] };
-    const updated = { ...team, achievements: [...(team.achievements || []), ach] };
-    await fetch(`${API_BASE}/teams/${teamId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated) });
-    refreshTeams();
-    onMsg('成就已添加');
-    setAchTournament('');
+    try {
+      const team = teams?.find(t => t.id === teamId);
+      if (!team) return;
+      const ach: Achievement = { id: 'ach_' + Date.now(), teamId, tournamentName: achTournament, placement: achPlacement as Achievement['placement'], date: new Date().toISOString().split('T')[0] };
+      const updated = { ...team, achievements: [...(team.achievements || []), ach] };
+      await apiWrite(`/teams/${teamId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated) });
+      refreshTeams();
+      onMsg('成就已添加');
+      setAchTournament('');
+    } catch (e: any) {
+      onMsg({ text: `添加成就失败: ${e.message}`, type: 'error' });
+    }
   };
 
   const removeAchievement = async (teamId: string, achId: string) => {
-    const team = teams?.find(t => t.id === teamId);
-    if (!team) return;
-    const updated = { ...team, achievements: team.achievements.filter(a => a.id !== achId) };
-    await fetch(`${API_BASE}/teams/${teamId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated) });
-    refreshTeams();
-    onMsg('成就已移除');
+    try {
+      const team = teams?.find(t => t.id === teamId);
+      if (!team) return;
+      const updated = { ...team, achievements: team.achievements.filter(a => a.id !== achId) };
+      await apiWrite(`/teams/${teamId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated) });
+      refreshTeams();
+      onMsg('成就已移除');
+    } catch (e: any) {
+      onMsg({ text: `移除成就失败: ${e.message}`, type: 'error' });
+    }
   };
 
   return (
@@ -501,7 +549,7 @@ function TeamEditor({ onMsg }: { onMsg: (s: string) => void }) {
 }
 
 /* ============ PLAYER EDITOR ============ */
-function PlayerEditor({ onMsg }: { onMsg: (s: string) => void }) {
+function PlayerEditor({ onMsg }: { onMsg: (m: string | { text: string; type: 'success' | 'error' }) => void }) {
   const { data: players, loading: loadingPlayers, refresh: refreshPlayers } = usePlayers();
   const { data: teams, refresh: refreshTeams } = useTeams();
 
@@ -540,28 +588,29 @@ function PlayerEditor({ onMsg }: { onMsg: (s: string) => void }) {
 
   const create = async () => {
     if (!nickname.trim()) return alert('请输入昵称');
-    const body = {
-      id: editId || ('player_' + Date.now()),
-      nickname: nickname.trim(), realName: realName.trim(), age, gender, avatar,
-      steamId: 'STEAM_1:0:' + Date.now(), isCoach, attributes: attrs,
-      honors: honors,
-      createdAt: new Date().toISOString().split('T')[0],
-    };
-    const method = editId ? 'PUT' : 'POST';
-    const url = editId ? `${API_BASE}/players/${editId}` : `${API_BASE}/players`;
-    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    if (res.ok) {
-      // If player is removed from coach role, update teams
+    try {
+      const body = {
+        id: editId || ('player_' + Date.now()),
+        nickname: nickname.trim(), realName: realName.trim(), age, gender, avatar,
+        steamId: 'STEAM_1:0:' + Date.now(), isCoach, attributes: attrs,
+        honors: honors,
+        createdAt: new Date().toISOString().split('T')[0],
+      };
+      const method = editId ? 'PUT' : 'POST';
+      const path = editId ? `/players/${editId}` : '/players';
+      await apiWrite(path, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       if (editId && !isCoach) {
         const affectedTeams = teams?.filter(t => t.coach === editId) || [];
         for (const t of affectedTeams) {
-          await fetch(`${API_BASE}/teams/${t.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...t, coach: null }) });
+          await apiWrite(`/teams/${t.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...t, coach: null }) });
         }
       }
       refreshPlayers();
       if (editId) refreshTeams();
       onMsg(editId ? `选手 "${nickname}" 已更新` : `选手 "${nickname}" 已创建`);
       reset();
+    } catch (e: any) {
+      onMsg({ text: `保存失败: ${e.message}`, type: 'error' });
     }
   };
 
@@ -584,29 +633,34 @@ function PlayerEditor({ onMsg }: { onMsg: (s: string) => void }) {
 
   const remove = async (id: string) => {
     if (!confirm('确定删除此选手？将从所有战队中移除')) return;
-    // Remove from all teams first
-    const affectedTeams = teams?.filter(t => t.members?.includes(id) || t.coach === id) || [];
-    for (const t of affectedTeams) {
-      const updated = { ...t, members: (t.members || []).filter(x => x !== id), coach: t.coach === id ? null : t.coach };
-      await fetch(`${API_BASE}/teams/${t.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated) });
+    try {
+      const affectedTeams = teams?.filter(t => t.members?.includes(id) || t.coach === id) || [];
+      for (const t of affectedTeams) {
+        const updated = { ...t, members: (t.members || []).filter(x => x !== id), coach: t.coach === id ? null : t.coach };
+        await apiWrite(`/teams/${t.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated) });
+      }
+      await apiWrite(`/players/${id}`, { method: 'DELETE' });
+      refreshPlayers();
+      refreshTeams();
+      onMsg('选手已删除，相关战队已更新');
+    } catch (e: any) {
+      onMsg({ text: `删除失败: ${e.message}`, type: 'error' });
     }
-    await fetch(`${API_BASE}/players/${id}`, { method: 'DELETE' });
-    refreshPlayers();
-    refreshTeams();
-    onMsg('选手已删除，相关战队已更新');
   };
 
   const batchRemove = async () => {
     if (!confirm(`确定批量删除 ${selected.length} 个选手？将从所有战队中移除`)) return;
-    const res = await fetch(`${API_BASE}/batch-delete`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ collection: 'players', ids: selected }),
-    });
-    if (res.ok) {
+    try {
+      await apiWrite('/batch-delete', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ collection: 'players', ids: selected }),
+      });
       refreshPlayers();
       refreshTeams();
       onMsg(`已删除 ${selected.length} 个选手`);
       setSelected([]);
+    } catch (e: any) {
+      onMsg({ text: `批量删除失败: ${e.message}`, type: 'error' });
     }
   };
 
@@ -722,7 +776,7 @@ function PlayerEditor({ onMsg }: { onMsg: (s: string) => void }) {
 }
 
 /* ============ MATCH EDITOR ============ */
-function MatchEditor({ onMsg }: { onMsg: (s: string) => void }) {
+function MatchEditor({ onMsg }: { onMsg: (m: string | { text: string; type: 'success' | 'error' }) => void }) {
   const { data: tournaments } = useTournaments();
   const { data: teams, refresh: refreshTeams } = useTeams();
   const { data: players } = usePlayers();
@@ -754,14 +808,16 @@ function MatchEditor({ onMsg }: { onMsg: (s: string) => void }) {
 
   const batchRemoveMatches = async () => {
     if (!confirm(`确定批量删除 ${selectedMatches.length} 场比赛？将同时删除相关地图和数据`)) return;
-    const res = await fetch(`${API_BASE}/batch-delete`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ collection: 'matches', ids: selectedMatches }),
-    });
-    if (res.ok) {
+    try {
+      await apiWrite('/batch-delete', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ collection: 'matches', ids: selectedMatches }),
+      });
       refreshMatches(); refreshMaps(); refreshStats();
       onMsg(`已删除 ${selectedMatches.length} 场比赛`);
       setSelectedMatches([]);
+    } catch (e: any) {
+      onMsg({ text: `批量删除失败: ${e.message}`, type: 'error' });
     }
   };
 
@@ -794,116 +850,140 @@ function MatchEditor({ onMsg }: { onMsg: (s: string) => void }) {
     const teamB = teams?.find(t => t.id === teamBId);
     if (!teamA || !teamB) return;
 
-    const eloA = teamA.elo || initialElo();
-    const eloB = teamB.elo || initialElo();
-    const actualA = scoreA > scoreB ? 1 : scoreA < scoreB ? 0 : 0.5;
-    const { changeA, changeB } = calcEloChange(eloA, eloB, actualA);
+    try {
+      const eloA = teamA.elo || initialElo();
+      const eloB = teamB.elo || initialElo();
+      const actualA = scoreA > scoreB ? 1 : scoreA < scoreB ? 0 : 0.5;
+      const { changeA, changeB } = calcEloChange(eloA, eloB, actualA);
 
-    const matchId = 'match_' + Date.now();
-    const mapIds = maps.map((_, i) => `mm_${matchId}_${i}`);
+      const matchId = 'match_' + Date.now();
+      const mapIds = maps.map((_, i) => `mm_${matchId}_${i}`);
 
-    await fetch(`${API_BASE}/matches`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id: matchId, tournamentId, teamAId, teamBId, scoreA, scoreB,
-        date: new Date(date).toISOString(), status: 'finished', format,
-        mapIds, eloChangeA: changeA, eloChangeB: changeB,
-      }),
-    });
-
-    await fetch(`${API_BASE}/teams/${teamAId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...teamA, elo: eloA + changeA }) });
-    await fetch(`${API_BASE}/teams/${teamBId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...teamB, elo: eloB + changeB }) });
-
-    for (let i = 0; i < maps.length; i++) {
-      await fetch(`${API_BASE}/matchMaps`, {
+      await apiWrite('/matches', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: mapIds[i], matchId, mapName: maps[i].mapName, scoreA: maps[i].scoreA, scoreB: maps[i].scoreB, pickTeam: null, order: i + 1 }),
+        body: JSON.stringify({
+          id: matchId, tournamentId, teamAId, teamBId, scoreA, scoreB,
+          date: new Date(date).toISOString(), status: 'finished', format,
+          mapIds, eloChangeA: changeA, eloChangeB: changeB,
+        }),
       });
-    }
 
-    refreshMatches();
-    refreshMaps();
-    refreshTeams();
-    onMsg(`比赛已录入！ELO: ${teamA.name} ${changeA > 0 ? '+' : ''}${changeA}, ${teamB.name} ${changeB > 0 ? '+' : ''}${changeB}`);
-    setScoreA(0); setScoreB(0);
+      await apiWrite(`/teams/${teamAId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...teamA, elo: eloA + changeA }) });
+      await apiWrite(`/teams/${teamBId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...teamB, elo: eloB + changeB }) });
+
+      for (let i = 0; i < maps.length; i++) {
+        await apiWrite('/matchMaps', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: mapIds[i], matchId, mapName: maps[i].mapName, scoreA: maps[i].scoreA, scoreB: maps[i].scoreB, pickTeam: null, order: i + 1 }),
+        });
+      }
+
+      refreshMatches();
+      refreshMaps();
+      refreshTeams();
+      onMsg(`比赛已录入！ELO: ${teamA.name} ${changeA > 0 ? '+' : ''}${changeA}, ${teamB.name} ${changeB > 0 ? '+' : ''}${changeB}`);
+      setScoreA(0); setScoreB(0);
+    } catch (e: any) {
+      onMsg({ text: `录入失败: ${e.message}`, type: 'error' });
+    }
   };
 
   const saveStat = async () => {
     if (!editingStat) return;
-    const statId = 'stat_' + Date.now();
-    const body = {
-      id: statId,
-      matchMapId: editingStat.matchMapId,
-      playerId: editingStat.playerId,
-      kills: parseInt(editingStat.kills) || 0,
-      deaths: parseInt(editingStat.deaths) || 0,
-      assists: parseInt(editingStat.assists) || 0,
-      adr: parseFloat(editingStat.adr) || 0,
-      rating: parseFloat(editingStat.rating) || 0,
-      kpr: parseFloat(editingStat.kpr) || 0,
-      headshotPercent: parseInt(editingStat.hs) || 0,
-      entryKills: parseInt(editingStat.entry) || 0,
-      clutches: parseInt(editingStat.clutches) || 0,
-    };
-    await fetch(`${API_BASE}/matchStats`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
-    });
-    refreshStats();
-    onMsg('选手数据已添加');
-    setEditingStat(null);
+    try {
+      const statId = 'stat_' + Date.now();
+      const body = {
+        id: statId,
+        matchMapId: editingStat.matchMapId,
+        playerId: editingStat.playerId,
+        kills: parseInt(editingStat.kills) || 0,
+        deaths: parseInt(editingStat.deaths) || 0,
+        assists: parseInt(editingStat.assists) || 0,
+        adr: parseFloat(editingStat.adr) || 0,
+        rating: parseFloat(editingStat.rating) || 0,
+        kpr: parseFloat(editingStat.kpr) || 0,
+        headshotPercent: parseInt(editingStat.hs) || 0,
+        entryKills: parseInt(editingStat.entry) || 0,
+        clutches: parseInt(editingStat.clutches) || 0,
+      };
+      await apiWrite('/matchStats', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+      });
+      refreshStats();
+      onMsg('选手数据已添加');
+      setEditingStat(null);
+    } catch (e: any) {
+      onMsg({ text: `添加数据失败: ${e.message}`, type: 'error' });
+    }
   };
 
   const deleteStat = async (statId: string) => {
     if (!confirm('确定删除此数据？')) return;
-    await fetch(`${API_BASE}/matchStats/${statId}`, { method: 'DELETE' });
-    refreshStats();
-    onMsg('数据已删除');
+    try {
+      await apiWrite(`/matchStats/${statId}`, { method: 'DELETE' });
+      refreshStats();
+      onMsg('数据已删除');
+    } catch (e: any) {
+      onMsg({ text: `删除数据失败: ${e.message}`, type: 'error' });
+    }
   };
 
   const saveMap = async () => {
     if (!editingMap) return;
-    const map = allMaps?.find(mm => mm.id === editingMap.id);
-    if (!map) return;
-    const updated = { ...map, mapName: editingMap.mapName, scoreA: parseInt(editingMap.scoreA) || 0, scoreB: parseInt(editingMap.scoreB) || 0 };
-    await fetch(`${API_BASE}/matchMaps/${editingMap.id}`, {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated),
-    });
-    refreshMaps();
-    onMsg(`地图 ${editingMap.mapName} 比分已更新`);
-    setEditingMap(null);
+    try {
+      const map = allMaps?.find(mm => mm.id === editingMap.id);
+      if (!map) return;
+      const updated = { ...map, mapName: editingMap.mapName, scoreA: parseInt(editingMap.scoreA) || 0, scoreB: parseInt(editingMap.scoreB) || 0 };
+      await apiWrite(`/matchMaps/${editingMap.id}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated),
+      });
+      refreshMaps();
+      onMsg(`地图 ${editingMap.mapName} 比分已更新`);
+      setEditingMap(null);
+    } catch (e: any) {
+      onMsg({ text: `更新地图失败: ${e.message}`, type: 'error' });
+    }
   };
 
   const addMapToMatch = async (matchId: string) => {
     const match = matches?.find(m => m.id === matchId);
     if (!match) return;
-    const newMapId = `mm_${matchId}_${Date.now()}`;
-    await fetch(`${API_BASE}/matchMaps`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: newMapId, matchId, mapName: newMapName, scoreA: 0, scoreB: 0, pickTeam: null, order: (match.mapIds?.length || 0) + 1 }),
-    });
-    const updatedMatch = { ...match, mapIds: [...(match.mapIds || []), newMapId] };
-    await fetch(`${API_BASE}/matches/${matchId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updatedMatch) });
-    refreshMatches();
-    refreshMaps();
-    onMsg('已添加新地图');
+    try {
+      const newMapId = `mm_${matchId}_${Date.now()}`;
+      await apiWrite('/matchMaps', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: newMapId, matchId, mapName: newMapName, scoreA: 0, scoreB: 0, pickTeam: null, order: (match.mapIds?.length || 0) + 1 }),
+      });
+      const updatedMatch = { ...match, mapIds: [...(match.mapIds || []), newMapId] };
+      await apiWrite(`/matches/${matchId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updatedMatch) });
+      refreshMatches();
+      refreshMaps();
+      onMsg('已添加新地图');
+    } catch (e: any) {
+      onMsg({ text: `添加地图失败: ${e.message}`, type: 'error' });
+    }
   };
 
   const removeMapFromMatch = async (matchId: string, mapId: string) => {
     if (!confirm('确定删除此地图及所有相关选手数据？')) return;
-    const match = matches?.find(m => m.id === matchId);
-    const statsToDelete = (allStats || []).filter(s => s.matchMapId === mapId);
-    for (const s of statsToDelete) {
-      await fetch(`${API_BASE}/matchStats/${s.id}`, { method: 'DELETE' });
+    try {
+      const match = matches?.find(m => m.id === matchId);
+      const statsToDelete = (allStats || []).filter(s => s.matchMapId === mapId);
+      for (const s of statsToDelete) {
+        await apiWrite(`/matchStats/${s.id}`, { method: 'DELETE' });
+      }
+      await apiWrite(`/matchMaps/${mapId}`, { method: 'DELETE' });
+      if (match) {
+        const updated = { ...match, mapIds: (match.mapIds || []).filter(id => id !== mapId) };
+        await apiWrite(`/matches/${matchId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated) });
+      }
+      refreshMatches();
+      refreshMaps();
+      refreshStats();
+      onMsg('地图已删除');
+    } catch (e: any) {
+      onMsg({ text: `删除地图失败: ${e.message}`, type: 'error' });
     }
-    await fetch(`${API_BASE}/matchMaps/${mapId}`, { method: 'DELETE' });
-    if (match) {
-      const updated = { ...match, mapIds: (match.mapIds || []).filter(id => id !== mapId) };
-      await fetch(`${API_BASE}/matches/${matchId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated) });
-    }
-    refreshMatches();
-    refreshMaps();
-    refreshStats();
-    onMsg('地图已删除');
   };
 
   const startAddStat = (mapId: string) => {
@@ -1153,7 +1233,7 @@ function MatchEditor({ onMsg }: { onMsg: (s: string) => void }) {
 }
 
 /* ============ BRACKET EDITOR ============ */
-function BracketEditor({ onMsg }: { onMsg: (s: string) => void }) {
+function BracketEditor({ onMsg }: { onMsg: (m: string | { text: string; type: 'success' | 'error' }) => void }) {
   const { data: tournaments, refresh: refreshTournaments } = useTournaments();
   const { data: teams } = useTeams();
   const { data: allMatches, refresh: refreshMatches } = useMatches();
@@ -1183,13 +1263,17 @@ function BracketEditor({ onMsg }: { onMsg: (s: string) => void }) {
     if (!tournament || !bracketType || tournament.teams.length < 4) {
       return alert('请选择对阵图类型，且赛事需要至少4支队伍');
     }
-    const newSlots = generateBracket(bracketType as any, tournament.id, tournament.teams);
-    await fetch(`${API_BASE}/tournaments/${tournamentId}`, {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...tournament, bracketType, bracketSlots: newSlots }),
-    });
-    refreshTournaments();
-    onMsg(`对阵图已生成 (${bracketType === '4_single' ? '4队单淘' : bracketType === '4_double' ? '4队双淘' : bracketType === '8_single' ? '8队单淘' : '8队双淘'})`);
+    try {
+      const newSlots = generateBracket(bracketType as any, tournament.id, tournament.teams);
+      await apiWrite(`/tournaments/${tournamentId}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...tournament, bracketType, bracketSlots: newSlots }),
+      });
+      refreshTournaments();
+      onMsg(`对阵图已生成 (${bracketType === '4_single' ? '4队单淘' : bracketType === '4_double' ? '4队双淘' : bracketType === '8_single' ? '8队单淘' : '8队双淘'})`);
+    } catch (e: any) {
+      onMsg({ text: `生成对阵图失败: ${e.message}`, type: 'error' });
+    }
   };
 
   const startEditSlot = (slot: BracketSlot) => {
@@ -1208,64 +1292,72 @@ function BracketEditor({ onMsg }: { onMsg: (s: string) => void }) {
 
   const saveSlotMatch = async (slot: BracketSlot) => {
     if (!tournament) return;
-    const now = new Date().toISOString();
-    let matchId = slot.matchId;
+    try {
+      const now = new Date().toISOString();
+      let matchId = slot.matchId;
 
-    if (matchId) {
-      const match = allMatches?.find(m => m.id === matchId);
-      if (match) {
-        const newStatus = (editForm.scoreA || editForm.scoreB) ? 'finished' as const : 'upcoming' as const;
-        const updated = { ...match, date: editForm.date || match.date, teamAId: editForm.teamAId || match.teamAId, teamBId: editForm.teamBId || match.teamBId, scoreA: editForm.scoreA ? parseInt(editForm.scoreA) : match.scoreA, scoreB: editForm.scoreB ? parseInt(editForm.scoreB) : match.scoreB, format: editForm.format, status: newStatus };
-        await fetch(`${API_BASE}/matches/${matchId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated) });
-        if (newStatus === 'finished' && match.status !== 'finished') {
-          const teamA = teams?.find(t => t.id === updated.teamAId);
-          const teamB = teams?.find(t => t.id === updated.teamBId);
+      if (matchId) {
+        const match = allMatches?.find(m => m.id === matchId);
+        if (match) {
+          const newStatus = (editForm.scoreA || editForm.scoreB) ? 'finished' as const : 'upcoming' as const;
+          const updated = { ...match, date: editForm.date || match.date, teamAId: editForm.teamAId || match.teamAId, teamBId: editForm.teamBId || match.teamBId, scoreA: editForm.scoreA ? parseInt(editForm.scoreA) : match.scoreA, scoreB: editForm.scoreB ? parseInt(editForm.scoreB) : match.scoreB, format: editForm.format, status: newStatus };
+          await apiWrite(`/matches/${matchId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated) });
+          if (newStatus === 'finished' && match.status !== 'finished') {
+            const teamA = teams?.find(t => t.id === updated.teamAId);
+            const teamB = teams?.find(t => t.id === updated.teamBId);
+            if (teamA && teamB) {
+              const scoreA = updated.scoreA > updated.scoreB ? 1 : 0;
+              const { changeA } = calcEloChange(teamA.elo, teamB.elo, scoreA);
+              await apiWrite(`/teams/${teamA.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...teamA, elo: teamA.elo + changeA }) });
+              await apiWrite(`/teams/${teamB.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...teamB, elo: teamB.elo - changeA }) });
+            }
+          }
+        }
+      } else {
+        matchId = `match_${Date.now()}`;
+        const isFinished = !!(editForm.scoreA && editForm.scoreB);
+        await apiWrite('/matches', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: matchId, tournamentId: tournamentId || '', teamAId: editForm.teamAId, teamBId: editForm.teamBId, scoreA: parseInt(editForm.scoreA) || 0, scoreB: parseInt(editForm.scoreB) || 0, date: editForm.date || now, status: isFinished ? 'finished' : 'upcoming', format: editForm.format || 'bo3', mapIds: [], eloChangeA: 0, eloChangeB: 0 }),
+        });
+        if (isFinished) {
+          const teamA = teams?.find(t => t.id === editForm.teamAId);
+          const teamB = teams?.find(t => t.id === editForm.teamBId);
           if (teamA && teamB) {
-            const scoreA = updated.scoreA > updated.scoreB ? 1 : 0;
-            const { changeA } = calcEloChange(teamA.elo, teamB.elo, scoreA);
-            await fetch(`${API_BASE}/teams/${teamA.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...teamA, elo: teamA.elo + changeA }) });
-            await fetch(`${API_BASE}/teams/${teamB.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...teamB, elo: teamB.elo - changeA }) });
+            const score = parseInt(editForm.scoreA) > parseInt(editForm.scoreB) ? 1 : 0;
+            const { changeA } = calcEloChange(teamA.elo, teamB.elo, score);
+            await apiWrite(`/teams/${teamA.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...teamA, elo: teamA.elo + changeA }) });
+            await apiWrite(`/teams/${teamB.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...teamB, elo: teamB.elo - changeA }) });
           }
         }
       }
-    } else {
-      matchId = `match_${Date.now()}`;
-      const isFinished = !!(editForm.scoreA && editForm.scoreB);
-      await fetch(`${API_BASE}/matches`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: matchId, tournamentId: tournamentId || '', teamAId: editForm.teamAId, teamBId: editForm.teamBId, scoreA: parseInt(editForm.scoreA) || 0, scoreB: parseInt(editForm.scoreB) || 0, date: editForm.date || now, status: isFinished ? 'finished' : 'upcoming', format: editForm.format || 'bo3', mapIds: [], eloChangeA: 0, eloChangeB: 0 }),
-      });
-      if (isFinished) {
-        const teamA = teams?.find(t => t.id === editForm.teamAId);
-        const teamB = teams?.find(t => t.id === editForm.teamBId);
-        if (teamA && teamB) {
-          const score = parseInt(editForm.scoreA) > parseInt(editForm.scoreB) ? 1 : 0;
-          const { changeA } = calcEloChange(teamA.elo, teamB.elo, score);
-          await fetch(`${API_BASE}/teams/${teamA.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...teamA, elo: teamA.elo + changeA }) });
-          await fetch(`${API_BASE}/teams/${teamB.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...teamB, elo: teamB.elo - changeA }) });
-        }
-      }
-    }
 
-    const updatedSlots = slots.map((s: BracketSlot) => s.id === slot.id ? { ...s, matchId } : s);
-    await fetch(`${API_BASE}/tournaments/${tournamentId}`, {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...tournament, bracketSlots: updatedSlots }),
-    });
-    setEditingSlotId(null);
-    refreshMatches();
-    refreshTournaments();
-    onMsg('比赛已保存');
+      const updatedSlots = slots.map((s: BracketSlot) => s.id === slot.id ? { ...s, matchId } : s);
+      await apiWrite(`/tournaments/${tournamentId}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...tournament, bracketSlots: updatedSlots }),
+      });
+      setEditingSlotId(null);
+      refreshMatches();
+      refreshTournaments();
+      onMsg('比赛已保存');
+    } catch (e: any) {
+      onMsg({ text: `保存失败: ${e.message}`, type: 'error' });
+    }
   };
 
   const deleteSlotMatch = async (slot: BracketSlot) => {
     if (!tournament || !slot.matchId || !confirm('确定移除此比赛？')) return;
-    await fetch(`${API_BASE}/matches/${slot.matchId}`, { method: 'DELETE' });
-    const updatedSlots = slots.map((s: BracketSlot) => s.id === slot.id ? { ...s, matchId: null } : s);
-    await fetch(`${API_BASE}/tournaments/${tournamentId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...tournament, bracketSlots: updatedSlots }) });
-    refreshMatches();
-    refreshTournaments();
-    onMsg('比赛已移除');
+    try {
+      await apiWrite(`/matches/${slot.matchId}`, { method: 'DELETE' });
+      const updatedSlots = slots.map((s: BracketSlot) => s.id === slot.id ? { ...s, matchId: null } : s);
+      await apiWrite(`/tournaments/${tournamentId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...tournament, bracketSlots: updatedSlots }) });
+      refreshMatches();
+      refreshTournaments();
+      onMsg('比赛已移除');
+    } catch (e: any) {
+      onMsg({ text: `移除失败: ${e.message}`, type: 'error' });
+    }
   };
 
   return (
