@@ -1,8 +1,7 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { usePlayers, useTeams, useMatchStats } from '../hooks/useData';
-import { Gamepad2, ChevronRight } from 'lucide-react';
-
+import { ChevronRight } from 'lucide-react';
 
 export default function Players() {
   const { data: players, loading } = usePlayers();
@@ -32,30 +31,29 @@ export default function Players() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6">
-      <div className="flex items-center gap-3 mb-2">
-        <Gamepad2 className="w-6 h-6 text-primary" />
-        <h1 className="text-2xl font-bold text-gray-900">选手排行</h1>
+    <div className="max-w-5xl mx-auto px-4 py-5">
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-sm font-bold text-text uppercase tracking-wider">选手排行</h1>
+        <span className="text-[10px] text-muted">Rating 3.0 · {ranked.length} 位选手</span>
       </div>
-      <p className="text-gray-500 text-sm mb-6">基于 Rating 3.0 排名</p>
 
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+      <div className="bg-surface border border-border rounded-lg overflow-hidden">
         <table className="data-table">
           <thead>
             <tr>
-              <th className="w-14 text-center">#</th>
+              <th className="w-12 text-center">#</th>
               <th>选手</th>
-              <th>战队</th>
-              <th className="text-center">Rating 3.0</th>
-              <th className="text-center">K/D</th>
-              <th className="text-center">比赛数</th>
-              <th className="w-10"></th>
+              <th className="hidden sm:table-cell">战队</th>
+              <th className="text-center w-24">Rating</th>
+              <th className="text-center w-20">K/D</th>
+              <th className="text-center w-16">场次</th>
+              <th className="w-8"></th>
             </tr>
           </thead>
           <tbody>
@@ -64,41 +62,38 @@ export default function Players() {
               return (
                 <tr key={p.id}>
                   <td className="text-center">
-                    <span className={`inline-flex w-6 h-6 rounded-full items-center justify-center text-xs font-bold ${
-                      i === 0 ? 'bg-yellow-100 text-yellow-700' :
-                      i === 1 ? 'bg-gray-100 text-gray-600' :
-                      i === 2 ? 'bg-orange-100 text-orange-700' :
-                      'text-gray-400'
-                    }`}>
+                    <span className={`text-xs font-bold ${i === 0 ? 'text-accent' : i < 3 ? 'text-muted' : 'text-border'}`}>
                       {i + 1}
                     </span>
                   </td>
                   <td>
-                    <Link to={`/players/${p.id}`} className="flex items-center gap-3 hover:text-primary transition-colors">
+                    <Link to={`/players/${p.id}`} className="flex items-center gap-2.5 hover:text-accent transition-colors">
                       {p.avatar ? (
-                        <img src={p.avatar} alt="" className="w-9 h-9 rounded-full object-cover" />
+                        <img src={p.avatar} alt="" className="w-7 h-7 rounded-full object-cover" />
                       ) : (
-                        <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
-                          <span className="text-sm font-bold text-primary">{p.nickname.charAt(0)}</span>
+                        <div className="w-7 h-7 rounded-full bg-accent/15 flex items-center justify-center">
+                          <span className="text-xs font-bold text-accent">{p.nickname.charAt(0)}</span>
                         </div>
                       )}
                       <div>
-                        <span className="font-semibold text-gray-900">{p.nickname}</span>
-                        <span className="text-gray-400 ml-1.5 text-xs">{p.realName}</span>
+                        <span className="font-semibold text-text text-xs">{p.nickname}</span>
+                        <span className="text-muted ml-1.5 text-[10px]">{p.realName}</span>
                       </div>
                     </Link>
                   </td>
-                  <td>
+                  <td className="hidden sm:table-cell">
                     {team && (
-                      <Link to={`/teams/${team.id}`} className="text-sm text-primary hover:underline">
-                        [{team.tag}] {team.name}
+                      <Link to={`/teams/${team.id}`} className="text-xs text-accent hover:underline">
+                        [{team.tag}]
                       </Link>
                     )}
                   </td>
-                  <td className="text-center font-bold text-primary font-mono">{p.avgRating.toFixed(2)}</td>
-                  <td className="text-center text-gray-600 font-mono">{p.kd.toFixed(2)}</td>
-                  <td className="text-center text-gray-400 text-sm">{p.count}</td>
-                  <td><ChevronRight className="w-4 h-4 text-gray-300" /></td>
+                  <td className={`text-center font-bold font-mono text-sm ${p.avgRating >= 1.2 ? 'text-positive' : p.avgRating >= 0.9 ? 'text-text' : 'text-danger'}`}>
+                    {p.avgRating.toFixed(2)}
+                  </td>
+                  <td className="text-center text-muted font-mono text-xs">{p.kd.toFixed(2)}</td>
+                  <td className="text-center text-muted text-xs">{p.count}</td>
+                  <td><ChevronRight className="w-3.5 h-3.5 text-border" /></td>
                 </tr>
               );
             })}

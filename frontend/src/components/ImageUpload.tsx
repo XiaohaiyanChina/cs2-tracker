@@ -22,7 +22,7 @@ export default function ImageUpload({ currentImage, onImageChange, size = 96, la
   return (
     <div className="flex flex-col items-center gap-2">
       <div
-        className="relative rounded-full border-2 border-dashed border-gray-300 overflow-hidden cursor-pointer hover:border-primary transition-colors flex items-center justify-center bg-gray-50"
+        className="relative rounded-full border-2 border-dashed border-border overflow-hidden cursor-pointer hover:border-accent transition-colors flex items-center justify-center bg-[#1c2128]"
         style={{ width: size, height: size }}
         onClick={() => inputRef.current?.click()}
       >
@@ -40,7 +40,7 @@ export default function ImageUpload({ currentImage, onImageChange, size = 96, la
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
-        className="text-xs text-primary hover:underline"
+        className="text-xs text-accent hover:underline"
       >
         {label}
       </button>

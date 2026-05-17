@@ -1,68 +1,85 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #16a34a;
-  --color-primary-light: #22c55e;
-  --color-primary-dark: #15803d;
-  --color-bg: #f8fafc;
-  --color-surface: #ffffff;
-  --color-border: #e2e8f0;
-  --color-text: #1e293b;
-  --color-muted: #64748b;
-  --color-accent: #f59e0b;
-  --color-danger: #ef4444;
-  --color-info: #3b82f6;
+  --color-primary: #f0883e;
+  --color-primary-light: #f5a623;
+  --color-primary-dark: #d9752a;
+  --color-bg: #0d1117;
+  --color-surface: #161b22;
+  --color-border: #21262d;
+  --color-text: #e6edf3;
+  --color-muted: #8b949e;
+  --color-accent: #f0883e;
+  --color-danger: #f85149;
+  --color-info: #58a6ff;
+  --color-positive: #3fb950;
 }
 
 body {
   margin: 0;
-  background-color: #f1f5f9;
-  color: #1e293b;
+  background-color: #0d1117;
+  color: #e6edf3;
   font-family: 'Inter', 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
+/* Tables */
 .data-table {
   width: 100%;
   border-collapse: collapse;
 }
 
 .data-table th {
-  background: #f8fafc;
-  color: #64748b;
+  background: #161b22;
+  color: #8b949e;
   font-weight: 600;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 10px 14px;
+  letter-spacing: 0.06em;
+  padding: 8px 12px;
   text-align: left;
-  border-bottom: 2px solid #e2e8f0;
+  border-bottom: 1px solid #21262d;
 }
 
 .data-table td {
-  padding: 10px 14px;
-  border-bottom: 1px solid #f1f5f9;
-  font-size: 0.875rem;
-  color: #334155;
+  padding: 8px 12px;
+  border-bottom: 1px solid #21262d;
+  font-size: 0.8125rem;
+  color: #c9d1d9;
 }
 
-.data-table tr:hover td {
-  background: #f8fafc;
+.data-table tbody tr:hover td {
+  background: #1c2128;
 }
 
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #0d1117;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #30363d;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #484f58;
 }
 
 input[type="file"] {
   display: none;
+}
+
+/* Selection */
+::selection {
+  background: #f0883e40;
+  color: #e6edf3;
+}
+
+/* Focus ring */
+*:focus-visible {
+  outline: 2px solid #f0883e;
+  outline-offset: 2px;
 }

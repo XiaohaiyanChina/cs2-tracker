@@ -4,9 +4,9 @@ import type { BracketSlot, Match, Team } from '../types';
 
 function TeamLogo({ team, size = 'sm' }: { team: Team | null | undefined; size?: 'sm' | 'md' }) {
   const s = size === 'sm' ? 'w-5 h-5 text-[10px]' : 'w-7 h-7 text-xs';
-  if (!team) return <div className={`${s} rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-400`}>?</div>;
+  if (!team) return <div className={`${s} rounded-full bg-border flex items-center justify-center font-bold text-muted`}>?</div>;
   if (team.logo) return <img src={team.logo} alt="" className={`${s} rounded-full object-cover shrink-0`} />;
-  return <div className={`${s} rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary`}>{team.tag?.charAt(0) || '?'}</div>;
+  return <div className={`${s} rounded-full bg-accent/15 flex items-center justify-center font-bold text-accent`}>{team.tag?.charAt(0) || '?'}</div>;
 }
 
 function getWinner(match: Match | null | undefined): string | null {
@@ -31,35 +31,35 @@ function SlotCard({
   const isUB = slot.round.startsWith('ub');
 
   return (
-    <div className={`border rounded-lg shadow-sm relative group bg-white ${isGrand ? 'border-primary ring-1 ring-primary/20' : isUB ? 'border-green-200' : 'border-amber-200'}`}
+    <div className={`border rounded-lg relative group bg-surface ${isGrand ? 'border-accent ring-1 ring-accent/20' : isUB ? 'border-positive/30' : 'border-accent/20'}`}
       data-slot-id={slot.id} style={{ minWidth: 160, maxWidth: 180 }}>
       <div className={`text-center text-[10px] font-semibold py-0.5 rounded-t-md ${
-        isUB ? 'bg-green-100 text-green-700' : slot.round.startsWith('lb') ? 'bg-amber-100 text-amber-700' : 'bg-primary/20 text-primary'
+        isUB ? 'bg-positive/10 text-positive' : slot.round.startsWith('lb') ? 'bg-accent/10 text-accent' : 'bg-accent/15 text-accent'
       }`}>
         {slot.label}
       </div>
       <div className="p-2 space-y-1">
         <div className="flex items-center gap-1.5">
           <TeamLogo team={teamA} size="sm" />
-          <span className={`text-[11px] font-medium truncate flex-1 ${tAWon ? 'text-gray-900 font-bold' : 'text-gray-500'}`}>{teamA?.name || 'TBD'}</span>
-          {match && match.status === 'finished' && <span className={`text-xs font-mono font-bold ${tAWon ? 'text-green-600' : 'text-gray-400'}`}>{match.scoreA}</span>}
+          <span className={`text-[11px] font-medium truncate flex-1 ${tAWon ? 'text-text font-bold' : 'text-muted'}`}>{teamA?.name || 'TBD'}</span>
+          {match && match.status === 'finished' && <span className={`text-xs font-mono font-bold ${tAWon ? 'text-positive' : 'text-muted'}`}>{match.scoreA}</span>}
         </div>
         <div className="flex items-center gap-1.5">
           <TeamLogo team={teamB} size="sm" />
-          <span className={`text-[11px] font-medium truncate flex-1 ${tBWon ? 'text-gray-900 font-bold' : 'text-gray-500'}`}>{teamB?.name || 'TBD'}</span>
-          {match && match.status === 'finished' && <span className={`text-xs font-mono font-bold ${tBWon ? 'text-green-600' : 'text-gray-400'}`}>{match.scoreB}</span>}
+          <span className={`text-[11px] font-medium truncate flex-1 ${tBWon ? 'text-text font-bold' : 'text-muted'}`}>{teamB?.name || 'TBD'}</span>
+          {match && match.status === 'finished' && <span className={`text-xs font-mono font-bold ${tBWon ? 'text-positive' : 'text-muted'}`}>{match.scoreB}</span>}
         </div>
         {match && (
-          <div className="text-[10px] text-gray-400 text-center border-t border-gray-100 pt-1">
+          <div className="text-[10px] text-muted text-center border-t border-border pt-1">
             {new Date(match.date).toLocaleDateString('zh-CN')} {new Date(match.date).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })} · {match.format.toUpperCase()}
           </div>
         )}
-        {!match && <div className="text-[10px] text-gray-300 text-center border-t border-gray-100 pt-1">待定</div>}
+        {!match && <div className="text-[10px] text-muted text-center border-t border-border pt-1">待定</div>}
       </div>
       {editable && (
         <div className="absolute top-1 right-1 flex gap-0.5 z-10">
-          <button onClick={onEdit} className="p-0.5 bg-white border border-green-300 rounded hover:bg-green-50" title="编辑"><Edit3 className="w-3 h-3 text-green-600" /></button>
-          {slot.matchId && <button onClick={onDelete} className="p-0.5 bg-white border border-red-300 rounded hover:bg-red-50" title="删除"><Trash2 className="w-3 h-3 text-red-400" /></button>}
+          <button onClick={onEdit} className="p-0.5 bg-surface border border-positive/30 rounded hover:bg-positive/10" title="编辑"><Edit3 className="w-3 h-3 text-positive" /></button>
+          {slot.matchId && <button onClick={onDelete} className="p-0.5 bg-surface border border-danger/30 rounded hover:bg-danger/10" title="删除"><Trash2 className="w-3 h-3 text-danger" /></button>}
         </div>
       )}
     </div>
@@ -107,7 +107,7 @@ function OrthoConnectors({ slots, containerRef }: { slots: BracketSlot[]; contai
         newPaths.push({ d, color, key });
       };
 
-      drawConn(slot.nextWinSlotId, '#16a34a', `${slot.id}_win`);
+      drawConn(slot.nextWinSlotId, '#f0883e', `${slot.id}_win`);
     });
 
     setPaths(newPaths);
@@ -125,26 +125,26 @@ function OrthoConnectors({ slots, containerRef }: { slots: BracketSlot[]; contai
   return (
     <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 0, overflow: 'visible' }}>
       <defs>
-        <marker id="arrowGreen" markerWidth="6" markerHeight="5" refX="5" refY="2.5" orient="auto">
-          <path d="M0,0 L6,2.5 L0,5 Z" fill="#16a34a" />
+        <marker id="arrowOrange" markerWidth="6" markerHeight="5" refX="5" refY="2.5" orient="auto">
+          <path d="M0,0 L6,2.5 L0,5 Z" fill="#f0883e" />
         </marker>
       </defs>
       {paths.map(p => (
-        <path key={p.key} d={p.d} stroke="#16a34a" strokeWidth="1.5" fill="none" opacity="0.4"
-          markerEnd="url(#arrowGreen)" />
+        <path key={p.key} d={p.d} stroke={p.color} strokeWidth="1.5" fill="none" opacity="0.3"
+          markerEnd="url(#arrowOrange)" />
       ))}
     </svg>
   );
 }
 
-// --- Two-track layout: UB (top), LB (bottom), Grand Final (right-center) ---
+// --- Two-track layout ---
 interface TrackLayout {
   ubCols: BracketSlot[][];
   lbCols: BracketSlot[][];
   finalSlots: BracketSlot[];
   ubLabel: string;
   lbLabel: string;
-  totalCols: number; // max columns across both tracks
+  totalCols: number;
 }
 
 function getTrackLayout(slots: BracketSlot[]): TrackLayout {
@@ -154,7 +154,6 @@ function getTrackLayout(slots: BracketSlot[]): TrackLayout {
   const grand = slots.filter(s => s.round === 'grand_final');
 
   if (hasLB3) {
-    // 8_double
     return {
       ubCols: [
         slots.filter(s => s.round === 'ub_quarter'),
@@ -175,7 +174,6 @@ function getTrackLayout(slots: BracketSlot[]): TrackLayout {
   }
 
   if (hasQuarter && !hasLB) {
-    // 8_single
     return {
       ubCols: [
         slots.filter(s => s.round === 'ub_quarter'),
@@ -191,7 +189,6 @@ function getTrackLayout(slots: BracketSlot[]): TrackLayout {
   }
 
   if (hasLB && !hasQuarter) {
-    // 4_double
     return {
       ubCols: [
         slots.filter(s => s.round === 'ub_semi'),
@@ -208,7 +205,6 @@ function getTrackLayout(slots: BracketSlot[]): TrackLayout {
     };
   }
 
-  // 4_single
   return {
     ubCols: [
       slots.filter(s => s.round === 'ub_semi'),
@@ -222,7 +218,6 @@ function getTrackLayout(slots: BracketSlot[]): TrackLayout {
   };
 }
 
-// --- Main BracketView ---
 interface BracketViewProps {
   slots: BracketSlot[];
   allMatches: Match[];
@@ -281,13 +276,11 @@ export default function BracketView({ slots, allMatches, teams, editable, onEdit
   const maxUB = Math.max(...ubCols.map(c => c.length), 1);
   const maxLB = Math.max(...lbCols.map(c => c.length), 1);
 
-  // Track heights
   const ubBandH = maxUB * slotH + (maxUB - 1) * 24 + 10;
   const lbBandH = hasLB ? maxLB * slotH + (maxLB - 1) * 24 + 10 : 0;
   const bandGap = hasLB ? 40 : 0;
   const totalH = ubBandH + bandGap + lbBandH + 20;
 
-  // Helper: position slots within a column track
   const placeSlots = (colSlots: BracketSlot[], maxInTrack: number, topOffset: number) =>
     colSlots.map((s, i) => {
       const spacing = colSlots.length > 1 ? (maxInTrack * slotH + (maxInTrack - 1) * 24 - colSlots.length * slotH) / (colSlots.length + 1) : (maxInTrack * slotH + (maxInTrack - 1) * 24 - slotH) / 2;
@@ -302,19 +295,17 @@ export default function BracketView({ slots, allMatches, teams, editable, onEdit
     <div className="overflow-x-auto pb-2">
       <div style={{ minWidth: (totalCols + (hasGrand ? 1 : 0)) * 235, position: 'relative' }}>
 
-        {/* Track labels */}
-        <div style={{ position: 'absolute', left: 8, top: ubBandH / 2 - 8 }} className="text-xs font-bold text-green-600">
+        <div style={{ position: 'absolute', left: 8, top: ubBandH / 2 - 8 }} className="text-xs font-bold text-positive">
           {ubLabel}
         </div>
         {hasLB && (
-          <div style={{ position: 'absolute', left: 8, top: ubBandH + bandGap + lbBandH / 2 - 8 }} className="text-xs font-bold text-amber-600">
+          <div style={{ position: 'absolute', left: 8, top: ubBandH + bandGap + lbBandH / 2 - 8 }} className="text-xs font-bold text-accent">
             {lbLabel}
           </div>
         )}
 
         <div ref={bracketRef} style={{ height: totalH, position: 'relative', marginLeft: 64 }}>
 
-          {/* UB Track */}
           {ubCols.map((colSlots, colIdx) => {
             const left = colIdx * (colW + gapX);
             return placeSlots(colSlots, maxUB, 0).map(({ slot, top, match }) => (
@@ -326,7 +317,6 @@ export default function BracketView({ slots, allMatches, teams, editable, onEdit
             ));
           })}
 
-          {/* LB Track */}
           {hasLB && lbCols.map((colSlots, colIdx) => {
             const left = colIdx * (colW + gapX);
             return placeSlots(colSlots, maxLB, ubBandH + bandGap).map(({ slot, top, match }) => (
@@ -338,7 +328,6 @@ export default function BracketView({ slots, allMatches, teams, editable, onEdit
             ));
           })}
 
-          {/* Grand Final */}
           {hasGrand && finalSlots.map(s => {
             const left = totalCols * (colW + gapX);
             const top = (totalH - slotH) / 2;

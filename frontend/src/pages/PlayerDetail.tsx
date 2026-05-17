@@ -1,6 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
 import { usePlayers, useTeams, useMatchStats, useMatchMaps, useMatches } from '../hooks/useData';
-import { ChevronLeft, Gamepad2, TrendingUp, Medal, ArrowLeftRight } from 'lucide-react';
+import { ChevronLeft, TrendingUp, Medal, ArrowLeftRight } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import type { PlayerAttributes } from '../types';
@@ -95,16 +95,16 @@ export default function PlayerDetail() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   if (!player) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-16 text-center text-gray-400">
-        <Gamepad2 className="w-16 h-16 mx-auto mb-4 opacity-20" />
-        <p className="text-lg">选手未找到</p>
+      <div className="max-w-4xl mx-auto px-4 py-16 text-center text-muted">
+        <Medal className="w-12 h-12 mx-auto mb-3 opacity-20" />
+        <p className="text-sm">选手未找到</p>
       </div>
     );
   }
@@ -112,36 +112,36 @@ export default function PlayerDetail() {
   const otherPlayers = players?.filter(p => p.id !== id && !p.isCoach) || [];
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6">
-      <Link to="/players" className="flex items-center gap-1 text-gray-400 hover:text-gray-600 text-sm mb-4 transition-colors">
-        <ChevronLeft className="w-4 h-4" /> 返回选手列表
+    <div className="max-w-5xl mx-auto px-4 py-5">
+      <Link to="/players" className="inline-flex items-center gap-1 text-muted hover:text-text text-[11px] mb-4 transition-colors">
+        <ChevronLeft className="w-3.5 h-3.5" /> 返回选手列表
       </Link>
 
       {/* Header */}
-      <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6 shadow-sm">
-        <div className="flex items-start gap-5 flex-wrap">
+      <div className="bg-surface border border-border rounded-lg p-5 mb-4">
+        <div className="flex items-start gap-4 flex-wrap">
           {player.avatar ? (
-            <img src={player.avatar} alt="" className="w-20 h-20 rounded-full object-cover border-2 border-primary/20" />
+            <img src={player.avatar} alt="" className="w-16 h-16 rounded-full object-cover border-2 border-border" />
           ) : (
-            <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-              <span className="text-3xl font-bold text-primary">{player.nickname.charAt(0)}</span>
+            <div className="w-16 h-16 rounded-full bg-accent/15 flex items-center justify-center shrink-0">
+              <span className="text-2xl font-bold text-accent">{player.nickname.charAt(0)}</span>
             </div>
           )}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-2xl font-bold text-gray-900">{player.nickname}</h1>
+              <h1 className="text-xl font-bold text-text">{player.nickname}</h1>
               {player.isCoach && (
-                <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full font-medium">教练</span>
+                <span className="px-2 py-0.5 bg-positive/15 text-positive text-[10px] rounded-full font-semibold">教练</span>
               )}
             </div>
-            <p className="text-gray-500 text-sm">{player.realName}</p>
-            <div className="flex items-center gap-3 mt-1.5 text-sm text-gray-500">
+            <p className="text-muted text-xs">{player.realName}</p>
+            <div className="flex items-center gap-2 mt-1 text-xs text-muted">
               {player.age > 0 && <span>{player.age}岁</span>}
               {player.gender && <span>· {player.gender}</span>}
               {team && (
                 <>
                   <span>·</span>
-                  <Link to={`/teams/${team.id}`} className="text-primary hover:underline font-medium">
+                  <Link to={`/teams/${team.id}`} className="text-accent hover:underline font-medium">
                     [{team.tag}] {team.name}
                   </Link>
                 </>
@@ -152,33 +152,33 @@ export default function PlayerDetail() {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
         {[
-          { label: 'Rating 3.0', value: aggregate.avgRating.toFixed(2), color: 'text-primary' },
-          { label: 'K/D', value: aggregate.totalDeaths > 0 ? (aggregate.totalKills / aggregate.totalDeaths).toFixed(2) : '-', color: 'text-gray-900' },
-          { label: 'ADR', value: aggregate.avgADR.toFixed(1), color: 'text-gray-900' },
-          { label: 'KPR', value: aggregate.avgKPR.toFixed(2), color: 'text-gray-900' },
+          { label: 'Rating 3.0', value: aggregate.avgRating.toFixed(2), color: 'text-accent' },
+          { label: 'K/D', value: aggregate.totalDeaths > 0 ? (aggregate.totalKills / aggregate.totalDeaths).toFixed(2) : '-', color: 'text-text' },
+          { label: 'ADR', value: aggregate.avgADR.toFixed(1), color: 'text-text' },
+          { label: 'KPR', value: aggregate.avgKPR.toFixed(2), color: 'text-text' },
         ].map(({ label, value, color }) => (
-          <div key={label} className="bg-white border border-gray-200 rounded-xl p-4 text-center shadow-sm">
-            <p className={`text-2xl font-bold ${color}`}>{value}</p>
-            <p className="text-xs text-gray-400">{label}</p>
+          <div key={label} className="bg-surface border border-border rounded-lg p-3 text-center">
+            <p className={`text-xl font-bold ${color}`}>{value}</p>
+            <p className="text-[10px] text-muted">{label}</p>
           </div>
         ))}
       </div>
 
       {/* Radar Chart + Comparison */}
-      <div className="bg-white border border-gray-200 rounded-xl p-5 mb-6 shadow-sm">
+      <div className="bg-surface border border-border rounded-lg p-4 mb-4">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-          <h2 className="font-semibold text-gray-900 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-primary" />
-            能力雷达图
+          <h2 className="font-semibold text-text text-xs flex items-center gap-2 uppercase tracking-wider">
+            <TrendingUp className="w-4 h-4 text-accent" />
+            能力雷达
           </h2>
           <div className="flex items-center gap-2">
-            <ArrowLeftRight className="w-4 h-4 text-gray-400" />
+            <ArrowLeftRight className="w-3.5 h-3.5 text-muted" />
             <select
               value={compareId}
               onChange={e => setCompareId(e.target.value)}
-              className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white text-gray-700 focus:border-primary outline-none"
+              className="text-[11px] border border-border rounded-md px-2.5 py-1 bg-surface text-muted focus:border-accent outline-none"
             >
               <option value="">选择对比选手...</option>
               {otherPlayers.map(p => (
@@ -188,40 +188,38 @@ export default function PlayerDetail() {
               ))}
             </select>
             {compareId && (
-              <button onClick={() => setCompareId('')} className="text-xs text-red-500 hover:underline">
-                取消对比
+              <button onClick={() => setCompareId('')} className="text-[10px] text-danger hover:underline">
+                取消
               </button>
             )}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Radar */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           <div className="lg:col-span-2">
-            <ResponsiveContainer width="100%" height={380}>
+            <ResponsiveContainer width="100%" height={350}>
               <RadarChart data={radarData}>
-                <PolarGrid stroke="#e2e8f0" />
-                <PolarAngleAxis dataKey="attribute" tick={{ fill: '#64748b', fontSize: 12 }} />
-                <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: '#94a3b8', fontSize: 10 }} />
-                <Tooltip contentStyle={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8 }} />
-                <Radar name={player.nickname} dataKey="当前选手" stroke="#16a34a" fill="#16a34a" fillOpacity={0.2} />
+                <PolarGrid stroke="#21262d" />
+                <PolarAngleAxis dataKey="attribute" tick={{ fill: '#8b949e', fontSize: 11 }} />
+                <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: '#484f58', fontSize: 10 }} />
+                <Tooltip contentStyle={{ background: '#161b22', border: '1px solid #21262d', borderRadius: 8, color: '#e6edf3' }} />
+                <Radar name={player.nickname} dataKey="当前选手" stroke="#f0883e" fill="#f0883e" fillOpacity={0.15} />
                 {comparePlayer && (
-                  <Radar name={comparePlayer.nickname} dataKey="对比选手" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.15} />
+                  <Radar name={comparePlayer.nickname} dataKey="对比选手" stroke="#58a6ff" fill="#58a6ff" fillOpacity={0.15} />
                 )}
-                <Legend />
+                <Legend wrapperStyle={{ color: '#8b949e', fontSize: '11px' }} />
               </RadarChart>
             </ResponsiveContainer>
           </div>
 
-          {/* Attribute list */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {RADAR_LABELS.map(({ key, label }) => (
-              <div key={key} className="flex items-center justify-between p-2 rounded-lg bg-gray-50">
-                <span className="text-sm text-gray-700">{label}</span>
+              <div key={key} className="flex items-center justify-between p-2 rounded bg-[#1c2128]">
+                <span className="text-[11px] text-muted">{label}</span>
                 <div className="flex items-center gap-2">
-                  <span className="font-mono font-bold text-primary">{player.attributes[key].toFixed(0)}</span>
+                  <span className="font-mono font-bold text-accent text-xs">{player.attributes[key].toFixed(0)}</span>
                   {comparePlayer && (
-                    <span className="font-mono text-sm text-blue-500">
+                    <span className="font-mono text-[11px] text-info">
                       vs {comparePlayer.attributes[key].toFixed(0)}
                     </span>
                   )}
@@ -232,31 +230,31 @@ export default function PlayerDetail() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Map Performance + Recent Games */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4">
           {mapPerformance.length > 0 && (
-            <section className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-              <h3 className="font-semibold text-gray-900 mb-3">地图表现</h3>
+            <section className="bg-surface border border-border rounded-lg p-4">
+              <h3 className="font-semibold text-text text-xs mb-3 uppercase tracking-wider">地图表现</h3>
               <div className="space-y-2">
                 {mapPerformance.slice(0, 5).map((m) => (
                   <div key={m.name} className="flex items-center gap-3">
-                    <span className="text-sm text-gray-600 w-20">{m.name}</span>
-                    <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-primary rounded-full" style={{ width: `${(m.rating / 2) * 100}%` }} />
+                    <span className="text-[11px] text-muted w-20">{m.name}</span>
+                    <div className="flex-1 h-1.5 bg-border rounded-full overflow-hidden">
+                      <div className="h-full bg-accent rounded-full" style={{ width: `${(m.rating / 2) * 100}%` }} />
                     </div>
-                    <span className="text-sm font-mono text-gray-700">{m.rating.toFixed(2)}</span>
-                    <span className="text-xs text-gray-400">{m.count}场</span>
+                    <span className="text-[11px] font-mono text-text">{m.rating.toFixed(2)}</span>
+                    <span className="text-[10px] text-muted">{m.count}场</span>
                   </div>
                 ))}
               </div>
             </section>
           )}
 
-          <section className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-            <h3 className="font-semibold text-gray-900 mb-3">近期比赛</h3>
+          <section className="bg-surface border border-border rounded-lg p-4">
+            <h3 className="font-semibold text-text text-xs mb-3 uppercase tracking-wider">近期比赛</h3>
             <div className="overflow-x-auto">
-              <table className="data-table min-w-[500px]">
+              <table className="data-table min-w-[450px]">
                 <thead>
                   <tr>
                     <th>对阵</th>
@@ -272,24 +270,24 @@ export default function PlayerDetail() {
                     const oppTeam = teams?.find(t => t.id === (match.teamAId === team?.id ? match.teamBId : match.teamAId));
                     return (
                       <tr key={s.id}>
-                        <td><span className="text-sm text-gray-700">vs {oppTeam?.name || '?'}</span></td>
-                        <td className="text-gray-500 text-sm">{map?.mapName}</td>
-                        <td className="font-mono text-sm">
-                          <span className="text-green-600">{s.kills}</span>
-                          <span className="text-gray-300">/</span>
-                          <span className="text-red-500">{s.deaths}</span>
-                          <span className="text-gray-300">/</span>
-                          <span>{s.assists}</span>
+                        <td><span className="text-xs text-muted">vs {oppTeam?.name || '?'}</span></td>
+                        <td className="text-muted text-xs">{map?.mapName}</td>
+                        <td className="font-mono text-[11px]">
+                          <span className="text-positive">{s.kills}</span>
+                          <span className="text-border">/</span>
+                          <span className="text-danger">{s.deaths}</span>
+                          <span className="text-border">/</span>
+                          <span className="text-muted">{s.assists}</span>
                         </td>
-                        <td className="font-mono text-gray-700">{s.adr.toFixed(1)}</td>
-                        <td className={`font-mono font-bold ${s.rating >= 1.2 ? 'text-green-600' : s.rating < 0.9 ? 'text-red-500' : 'text-gray-700'}`}>
+                        <td className="font-mono text-muted text-xs">{s.adr.toFixed(1)}</td>
+                        <td className={`font-mono font-bold text-xs ${s.rating >= 1.2 ? 'text-positive' : s.rating < 0.9 ? 'text-danger' : 'text-muted'}`}>
                           {s.rating.toFixed(2)}
                         </td>
                       </tr>
                     );
                   })}
                   {recentGames.length === 0 && (
-                    <tr><td colSpan={5} className="text-gray-400 text-sm py-4 text-center">暂无数据</td></tr>
+                    <tr><td colSpan={5} className="text-muted text-xs py-4 text-center">暂无数据</td></tr>
                   )}
                 </tbody>
               </table>
@@ -298,37 +296,37 @@ export default function PlayerDetail() {
         </div>
 
         {/* Sidebar - Honors + Career Stats */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           {player.honors && player.honors.length > 0 && (
-            <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-              <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                <Medal className="w-4 h-4 text-primary" />
+            <div className="bg-surface border border-border rounded-lg p-4">
+              <h3 className="font-semibold text-text text-xs mb-3 flex items-center gap-2 uppercase tracking-wider">
+                <Medal className="w-3.5 h-3.5 text-accent" />
                 个人荣誉
               </h3>
               <div className="space-y-2">
                 {player.honors.map(h => (
-                  <div key={h.id} className="p-2 rounded-lg bg-yellow-50 border border-yellow-100">
-                    <p className="text-sm font-medium text-gray-800">{h.title}</p>
-                    <p className="text-xs text-gray-500">{h.tournamentName}</p>
-                    <p className="text-xs text-gray-400">{h.date}</p>
+                  <div key={h.id} className="p-2 rounded bg-accent/5 border border-accent/10">
+                    <p className="text-xs font-medium text-text">{h.title}</p>
+                    <p className="text-[10px] text-muted">{h.tournamentName}</p>
+                    <p className="text-[10px] text-muted">{h.date}</p>
                   </div>
                 ))}
               </div>
             </div>
           )}
-          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-            <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <Medal className="w-4 h-4 text-primary" />
+          <div className="bg-surface border border-border rounded-lg p-4">
+            <h3 className="font-semibold text-text text-xs mb-3 flex items-center gap-2 uppercase tracking-wider">
+              <Medal className="w-3.5 h-3.5 text-accent" />
               生涯数据
             </h3>
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between"><span className="text-gray-500">总击杀</span><span className="font-mono font-bold">{aggregate.totalKills}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">总死亡</span><span className="font-mono font-bold">{aggregate.totalDeaths}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">KD Ratio</span><span className="font-mono font-bold">{aggregate.totalDeaths > 0 ? (aggregate.totalKills / aggregate.totalDeaths).toFixed(2) : '-'}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">HS%</span><span className="font-mono font-bold">{aggregate.avgHS.toFixed(0)}%</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">首杀</span><span className="font-mono font-bold">{aggregate.totalEntry}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">残局</span><span className="font-mono font-bold">{aggregate.totalClutches}</span></div>
-              <div className="flex justify-between border-t border-gray-100 pt-2"><span className="text-gray-500">总地图数</span><span className="font-mono font-bold">{aggregate.count}</span></div>
+            <div className="space-y-2.5 text-xs">
+              <div className="flex justify-between"><span className="text-muted">总击杀</span><span className="font-mono font-bold text-text">{aggregate.totalKills}</span></div>
+              <div className="flex justify-between"><span className="text-muted">总死亡</span><span className="font-mono font-bold text-text">{aggregate.totalDeaths}</span></div>
+              <div className="flex justify-between"><span className="text-muted">KD Ratio</span><span className="font-mono font-bold text-text">{aggregate.totalDeaths > 0 ? (aggregate.totalKills / aggregate.totalDeaths).toFixed(2) : '-'}</span></div>
+              <div className="flex justify-between"><span className="text-muted">HS%</span><span className="font-mono font-bold text-text">{aggregate.avgHS.toFixed(0)}%</span></div>
+              <div className="flex justify-between"><span className="text-muted">首杀</span><span className="font-mono font-bold text-text">{aggregate.totalEntry}</span></div>
+              <div className="flex justify-between"><span className="text-muted">残局</span><span className="font-mono font-bold text-text">{aggregate.totalClutches}</span></div>
+              <div className="flex justify-between border-t border-border pt-2"><span className="text-muted">总地图数</span><span className="font-mono font-bold text-text">{aggregate.count}</span></div>
             </div>
           </div>
         </div>

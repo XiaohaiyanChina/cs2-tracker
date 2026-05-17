@@ -13,7 +13,7 @@ import type { PlayerAttributes, Achievement, PlayerHonor, BracketSlot, Match } f
 function Spinner() {
   return (
     <div className="flex items-center justify-center py-12">
-      <Loader2 className="w-6 h-6 text-primary animate-spin" />
+      <Loader2 className="w-6 h-6 text-accent animate-spin" />
     </div>
   );
 }
@@ -36,11 +36,11 @@ async function apiWrite(path: string, options?: RequestInit) {
 function BatchDeleteBar({ selected, onDelete, onClear }: { selected: string[]; onDelete: () => void; onClear: () => void }) {
   if (selected.length === 0) return null;
   return (
-    <div className="flex items-center gap-3 px-4 py-2 bg-red-50 border border-red-200 rounded-lg">
-      <span className="text-sm text-red-700 font-medium">已选 {selected.length} 项</span>
+    <div className="flex items-center gap-3 px-4 py-2 bg-danger/10 border border-danger/30 rounded-lg">
+      <span className="text-sm text-danger font-medium">已选 {selected.length} 项</span>
       <div className="flex-1" />
-      <button onClick={onClear} className="text-xs text-gray-500 hover:underline">取消</button>
-      <button onClick={onDelete} className="flex items-center gap-1 px-3 py-1 bg-red-500 text-white rounded text-xs font-medium hover:bg-red-600">
+      <button onClick={onClear} className="text-xs text-muted hover:underline">取消</button>
+      <button onClick={onDelete} className="flex items-center gap-1 px-3 py-1 bg-danger text-white rounded text-xs font-medium hover:bg-danger/90">
         <Trash2 className="w-3 h-3" /> 批量删除
       </button>
     </div>
@@ -122,18 +122,18 @@ export default function Admin() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-6">
       <div className="flex items-center gap-3 mb-6">
-        <Settings className="w-6 h-6 text-primary" />
-        <h1 className="text-2xl font-bold text-gray-900">管理员面板</h1>
+        <Settings className="w-6 h-6 text-accent" />
+        <h1 className="text-2xl font-bold text-text">管理员面板</h1>
         <div className="flex-1" />
-        <button onClick={handleExport} className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 hover:text-primary hover:bg-green-50 rounded-lg transition-colors">
+        <button onClick={handleExport} className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-muted hover:text-accent hover:bg-positive/10 rounded-lg transition-colors">
           <Download className="w-4 h-4" /> 备份
         </button>
-        <button onClick={handleImport} className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 hover:text-primary hover:bg-green-50 rounded-lg transition-colors">
+        <button onClick={handleImport} className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-muted hover:text-accent hover:bg-positive/10 rounded-lg transition-colors">
           <Upload className="w-4 h-4" /> 恢复
         </button>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-muted hover:text-danger hover:bg-danger/10 rounded-lg transition-colors"
         >
           <LogOut className="w-4 h-4" />
           退出登录
@@ -141,13 +141,13 @@ export default function Admin() {
       </div>
 
       {/* Tab bar */}
-      <div className="flex gap-1 bg-white rounded-lg border border-gray-200 p-1 mb-6">
+      <div className="flex gap-1 bg-surface rounded-lg border border-border p-1 mb-6">
         {TABS.map(({ key, icon: Icon, label }) => (
           <button
             key={key}
             onClick={() => { setTab(key); clearMsg(); }}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-sm font-medium transition-colors ${
-              tab === key ? 'bg-primary text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              tab === key ? 'bg-accent text-white shadow-sm' : 'text-muted hover:text-text'
             }`}
           >
             <Icon className="w-4 h-4" />
@@ -158,7 +158,7 @@ export default function Admin() {
 
       {msg && (
         <div className={`mb-4 p-3 rounded-lg text-sm flex items-center gap-2 ${
-          msg.type === 'error' ? 'bg-red-50 border border-red-200 text-red-700' : 'bg-green-50 border border-green-200 text-green-700'
+          msg.type === 'error' ? 'bg-danger/10 border border-danger/30 text-danger' : 'bg-positive/10 border border-positive/30 text-positive'
         }`}>
           {msg.type === 'error' ? <X className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
           {msg.text}
@@ -254,50 +254,50 @@ function TournamentEditor({ onMsg }: { onMsg: (m: string | { text: string; type:
 
   return (
     <div className="space-y-6">
-      <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-4">
-        <h3 className="font-semibold text-gray-900">创建新赛事</h3>
+      <div className="bg-surface border border-border rounded-xl p-5 shadow-sm space-y-4">
+        <h3 className="font-semibold text-text">创建新赛事</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <input placeholder="赛事名称" value={name} onChange={e => setName(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-primary outline-none" />
-          <select value={format} onChange={e => setFormat(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm">
+          <input placeholder="赛事名称" value={name} onChange={e => setName(e.target.value)} className="border border-border rounded-lg px-3 py-2 text-sm focus:border-accent outline-none" />
+          <select value={format} onChange={e => setFormat(e.target.value)} className="border border-border rounded-lg px-3 py-2 text-sm">
             <option value="single-elim">单败淘汰</option><option value="double-elim">双败淘汰</option>
             <option value="round-robin">循环赛</option><option value="groups">小组赛+淘汰</option>
           </select>
-          <select value={bracketType} onChange={e => setBracketType(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm">
+          <select value={bracketType} onChange={e => setBracketType(e.target.value)} className="border border-border rounded-lg px-3 py-2 text-sm">
             <option value="">对阵图类型（可选）</option>
             <option value="4_single">4队单淘</option>
             <option value="4_double">4队双淘</option>
             <option value="8_single">8队单淘</option>
             <option value="8_double">8队双淘</option>
           </select>
-          <input placeholder="描述" value={desc} onChange={e => setDesc(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-primary outline-none sm:col-span-2" />
-          <select value={status} onChange={e => setStatus(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm">
+          <input placeholder="描述" value={desc} onChange={e => setDesc(e.target.value)} className="border border-border rounded-lg px-3 py-2 text-sm focus:border-accent outline-none sm:col-span-2" />
+          <select value={status} onChange={e => setStatus(e.target.value)} className="border border-border rounded-lg px-3 py-2 text-sm">
             <option value="upcoming">即将开始</option><option value="ongoing">进行中</option><option value="finished">已结束</option>
           </select>
           <div className="flex gap-2">
-            <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm flex-1" />
-            <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm flex-1" />
+            <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="border border-border rounded-lg px-3 py-2 text-sm flex-1" />
+            <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="border border-border rounded-lg px-3 py-2 text-sm flex-1" />
           </div>
         </div>
         <div>
-          <p className="text-xs text-gray-400 mb-2">参赛战队</p>
+          <p className="text-xs text-muted mb-2">参赛战队</p>
           <div className="flex flex-wrap gap-1.5">
             {teams?.map(t => (
               <button key={t.id} onClick={() => setSelTeams(p => p.includes(t.id) ? p.filter(x => x !== t.id) : [...p, t.id])}
                 className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
-                  selTeams.includes(t.id) ? 'bg-primary/10 text-primary border border-primary/30' : 'bg-gray-50 text-gray-500 border border-gray-200'
+                  selTeams.includes(t.id) ? 'bg-accent/10 text-accent border border-accent/30' : 'bg-[#1c2128] text-muted border border-border'
                 }`}>{t.name}</button>
             ))}
           </div>
         </div>
-        <button onClick={create} className="flex items-center gap-1.5 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors">
+        <button onClick={create} className="flex items-center gap-1.5 px-4 py-2 bg-accent text-white rounded-lg text-sm font-medium hover:bg-accent/90 transition-colors">
           <Plus className="w-4 h-4" /> 创建赛事
         </button>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-          <h3 className="font-semibold text-gray-900">现有赛事 ({loadingTournaments ? '...' : tournaments?.length || 0})</h3>
-          <button onClick={selectAll} className="text-xs text-gray-400 hover:text-primary flex items-center gap-1">
+      <div className="bg-surface border border-border rounded-xl overflow-hidden shadow-sm">
+        <div className="p-4 border-b border-border flex items-center justify-between">
+          <h3 className="font-semibold text-text">现有赛事 ({loadingTournaments ? '...' : tournaments?.length || 0})</h3>
+          <button onClick={selectAll} className="text-xs text-muted hover:text-accent flex items-center gap-1">
             {selected.length > 0 && selected.length === (tournaments?.length ?? 0) ? <CheckSquare className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />}
             全选
           </button>
@@ -309,15 +309,15 @@ function TournamentEditor({ onMsg }: { onMsg: (m: string | { text: string; type:
             <tbody>
               {tournaments?.map(t => (
                 <tr key={t.id}>
-                  <td><button onClick={() => toggleSelect(t.id)} className="text-gray-300 hover:text-primary">{selected.includes(t.id) ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}</button></td>
-                  <td className="font-medium text-gray-900">{t.name}</td>
-                  <td><span className={`text-xs px-2 py-0.5 rounded ${t.status === 'ongoing' ? 'bg-green-100 text-green-700' : t.status === 'upcoming' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>{t.status === 'ongoing' ? '进行中' : t.status === 'upcoming' ? '即将' : '已结束'}</span></td>
-                  <td className="text-gray-500 text-sm">{t.startDate} ~ {t.endDate}</td>
-                  <td className="text-gray-500 text-sm">{t.teams?.length || 0} 队</td>
+                  <td><button onClick={() => toggleSelect(t.id)} className="text-border hover:text-accent">{selected.includes(t.id) ? <CheckSquare className="w-4 h-4 text-accent" /> : <Square className="w-4 h-4" />}</button></td>
+                  <td className="font-medium text-text">{t.name}</td>
+                  <td><span className={`text-xs px-2 py-0.5 rounded ${t.status === 'ongoing' ? 'bg-positive/15 text-positive' : t.status === 'upcoming' ? 'bg-info/15 text-info' : 'bg-border text-muted'}`}>{t.status === 'ongoing' ? '进行中' : t.status === 'upcoming' ? '即将' : '已结束'}</span></td>
+                  <td className="text-muted text-sm">{t.startDate} ~ {t.endDate}</td>
+                  <td className="text-muted text-sm">{t.teams?.length || 0} 队</td>
                   <td>
                     <div className="flex items-center gap-1">
-                      <Link to={`/tournaments/${t.id}`} className="text-primary hover:text-primary-dark text-xs" title="查看详情"><ExternalLink className="w-3.5 h-3.5" /></Link>
-                      <button onClick={() => remove(t.id)} className="text-red-500 hover:text-red-700 text-xs"><Trash2 className="w-3.5 h-3.5" /></button>
+                      <Link to={`/tournaments/${t.id}`} className="text-accent hover:text-accent/80 text-xs" title="查看详情"><ExternalLink className="w-3.5 h-3.5" /></Link>
+                      <button onClick={() => remove(t.id)} className="text-danger hover:text-danger/80 text-xs"><Trash2 className="w-3.5 h-3.5" /></button>
                     </div>
                   </td>
                 </tr>
@@ -447,25 +447,25 @@ function TeamEditor({ onMsg }: { onMsg: (m: string | { text: string; type: 'succ
   return (
     <div className="space-y-6">
       {/* Create/Edit Form */}
-      <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-4">
-        <h3 className="font-semibold text-gray-900">{editId ? '编辑战队' : '创建新战队'}</h3>
+      <div className="bg-surface border border-border rounded-xl p-5 shadow-sm space-y-4">
+        <h3 className="font-semibold text-text">{editId ? '编辑战队' : '创建新战队'}</h3>
         <div className="flex items-start gap-6">
           <ImageUpload currentImage={logo} onImageChange={setLogo} size={80} label="战队图标" />
           <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <input placeholder="战队名称" value={name} onChange={e => setName(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-primary outline-none" />
-            <input placeholder="标签 (2-4字符)" value={tag} onChange={e => setTag(e.target.value)} maxLength={4} className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-primary outline-none uppercase" />
-            <input type="number" placeholder="ELO积分" value={elo} onChange={e => setElo(parseInt(e.target.value) || 0)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-primary outline-none" />
+            <input placeholder="战队名称" value={name} onChange={e => setName(e.target.value)} className="border border-border rounded-lg px-3 py-2 text-sm focus:border-accent outline-none" />
+            <input placeholder="标签 (2-4字符)" value={tag} onChange={e => setTag(e.target.value)} maxLength={4} className="border border-border rounded-lg px-3 py-2 text-sm focus:border-accent outline-none uppercase" />
+            <input type="number" placeholder="ELO积分" value={elo} onChange={e => setElo(parseInt(e.target.value) || 0)} className="border border-border rounded-lg px-3 py-2 text-sm focus:border-accent outline-none" />
           </div>
         </div>
 
         {/* Players selection */}
         <div>
-          <p className="text-xs text-gray-400 mb-2">队员选择 (最多5人，已选 {selMembers.length})</p>
+          <p className="text-xs text-muted mb-2">队员选择 (最多5人，已选 {selMembers.length})</p>
           <div className="flex flex-wrap gap-1.5">
             {availablePlayers.map(p => (
               <button key={p.id} onClick={() => toggleMember(p.id)}
                 className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
-                  selMembers.includes(p.id) ? 'bg-primary/10 text-primary border border-primary/30' : 'bg-gray-50 text-gray-500 border border-gray-200'
+                  selMembers.includes(p.id) ? 'bg-accent/10 text-accent border border-accent/30' : 'bg-[#1c2128] text-muted border border-border'
                 }`}>{p.nickname}</button>
             ))}
           </div>
@@ -473,8 +473,8 @@ function TeamEditor({ onMsg }: { onMsg: (m: string | { text: string; type: 'succ
 
         {/* Coach */}
         <div>
-          <p className="text-xs text-gray-400 mb-2">教练选择</p>
-          <select value={coach} onChange={e => setCoach(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm">
+          <p className="text-xs text-muted mb-2">教练选择</p>
+          <select value={coach} onChange={e => setCoach(e.target.value)} className="border border-border rounded-lg px-3 py-2 text-sm">
             <option value="">无教练</option>
             {coachPlayers.map(p => <option key={p.id} value={p.id}>{p.nickname}</option>)}
             {availablePlayers.filter(p => !selMembers.includes(p.id)).map(p => <option key={p.id} value={p.id}>{p.nickname} (设为教练)</option>)}
@@ -482,39 +482,39 @@ function TeamEditor({ onMsg }: { onMsg: (m: string | { text: string; type: 'succ
         </div>
 
         <div className="flex gap-2">
-          <button onClick={create} className="flex items-center gap-1.5 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors">
+          <button onClick={create} className="flex items-center gap-1.5 px-4 py-2 bg-accent text-white rounded-lg text-sm font-medium hover:bg-accent/90 transition-colors">
             <Save className="w-4 h-4" /> {editId ? '更新' : '创建'}
           </button>
-          {editId && <button onClick={reset} className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm">取消</button>}
+          {editId && <button onClick={reset} className="px-4 py-2 bg-border text-muted rounded-lg text-sm">取消</button>}
         </div>
       </div>
 
       {/* Team List */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-          <h3 className="font-semibold text-gray-900">现有战队 ({loadingTeams ? '...' : teams?.length || 0})</h3>
-          <button onClick={selectAll} className="text-xs text-gray-400 hover:text-primary flex items-center gap-1">
+      <div className="bg-surface border border-border rounded-xl overflow-hidden shadow-sm">
+        <div className="p-4 border-b border-border flex items-center justify-between">
+          <h3 className="font-semibold text-text">现有战队 ({loadingTeams ? '...' : teams?.length || 0})</h3>
+          <button onClick={selectAll} className="text-xs text-muted hover:text-accent flex items-center gap-1">
             {selected.length > 0 && selected.length === (teams?.length ?? 0) ? <CheckSquare className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />}
             全选
           </button>
         </div>
         <BatchDeleteBar selected={selected} onDelete={batchRemove} onClear={() => setSelected([])} />
         {loadingTeams ? <Spinner /> : teams?.map(t => (
-          <div key={t.id} className="border-b border-gray-100 p-4 space-y-3">
+          <div key={t.id} className="border-b border-border/50 p-4 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <button onClick={() => toggleSelect(t.id)} className="text-gray-300 hover:text-primary shrink-0">
-                  {selected.includes(t.id) ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}
+                <button onClick={() => toggleSelect(t.id)} className="text-border hover:text-accent shrink-0">
+                  {selected.includes(t.id) ? <CheckSquare className="w-4 h-4 text-accent" /> : <Square className="w-4 h-4" />}
                 </button>
-                {t.logo ? <img src={t.logo} alt="" className="w-10 h-10 rounded-full object-cover" /> : <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">{t.tag?.charAt(0)}</div>}
+                {t.logo ? <img src={t.logo} alt="" className="w-10 h-10 rounded-full object-cover" /> : <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center text-accent font-bold">{t.tag?.charAt(0)}</div>}
                 <div>
-                  <span className="font-semibold text-gray-900">{t.name}</span>
-                  <span className="text-gray-400 ml-1.5 text-xs">[{t.tag}] ELO: {t.elo}</span>
+                  <span className="font-semibold text-text">{t.name}</span>
+                  <span className="text-muted ml-1.5 text-xs">[{t.tag}] ELO: {t.elo}</span>
                 </div>
               </div>
               <div className="flex gap-1.5">
-                <button onClick={() => startEdit(t)} className="text-xs text-primary hover:underline">编辑</button>
-                <button onClick={() => remove(t.id)} className="text-xs text-red-500 hover:underline">删除</button>
+                <button onClick={() => startEdit(t)} className="text-xs text-accent hover:underline">编辑</button>
+                <button onClick={() => remove(t.id)} className="text-xs text-danger hover:underline">删除</button>
               </div>
             </div>
 
@@ -522,28 +522,28 @@ function TeamEditor({ onMsg }: { onMsg: (m: string | { text: string; type: 'succ
             <div className="flex flex-wrap gap-1.5">
               {t.members?.map(pid => {
                 const p = players?.find(x => x.id === pid);
-                return p ? <span key={pid} className="text-xs px-2 py-0.5 bg-gray-100 rounded text-gray-600">{p.nickname}</span> : null;
+                return p ? <span key={pid} className="text-xs px-2 py-0.5 bg-border rounded text-muted">{p.nickname}</span> : null;
               })}
-              {t.coach && (() => { const c = players?.find(x => x.id === t.coach); return c ? <span className="text-xs px-2 py-0.5 bg-green-50 rounded text-green-600">{c.nickname} (教练)</span> : null; })()}
+              {t.coach && (() => { const c = players?.find(x => x.id === t.coach); return c ? <span className="text-xs px-2 py-0.5 bg-positive/10 rounded text-positive">{c.nickname} (教练)</span> : null; })()}
             </div>
 
             {/* Achievements */}
             <div>
-              <p className="text-xs text-gray-400 mb-1">成就</p>
+              <p className="text-xs text-muted mb-1">成就</p>
               <div className="flex flex-wrap gap-1.5 mb-2">
                 {t.achievements?.map(a => (
-                  <span key={a.id} className="text-xs px-2 py-0.5 bg-yellow-50 rounded text-yellow-700 flex items-center gap-1">
+                  <span key={a.id} className="text-xs px-2 py-0.5 bg-accent/10 rounded text-accent flex items-center gap-1">
                     {a.placement === '冠军' ? '🥇' : a.placement === '亚军' ? '🥈' : '🏅'} {a.tournamentName} — {a.placement}
-                    <button onClick={() => removeAchievement(t.id, a.id)} className="ml-1 text-red-400 hover:text-red-600"><X className="w-3 h-3" /></button>
+                    <button onClick={() => removeAchievement(t.id, a.id)} className="ml-1 text-danger/70 hover:text-danger"><X className="w-3 h-3" /></button>
                   </span>
                 ))}
               </div>
               <div className="flex gap-2 items-center">
-                <input placeholder="赛事名" value={achTournament} onChange={e => setAchTournament(e.target.value)} className="border border-gray-200 rounded px-2 py-1 text-xs w-32" />
-                <select value={achPlacement} onChange={e => setAchPlacement(e.target.value)} className="border border-gray-200 rounded px-2 py-1 text-xs">
+                <input placeholder="赛事名" value={achTournament} onChange={e => setAchTournament(e.target.value)} className="border border-border rounded px-2 py-1 text-xs w-32" />
+                <select value={achPlacement} onChange={e => setAchPlacement(e.target.value)} className="border border-border rounded px-2 py-1 text-xs">
                   <option>冠军</option><option>亚军</option><option>四强</option><option>八强</option><option>参赛</option>
                 </select>
-                <button onClick={() => addAchievement(t.id)} className="text-xs text-primary hover:underline">添加成就</button>
+                <button onClick={() => addAchievement(t.id)} className="text-xs text-accent hover:underline">添加成就</button>
               </div>
             </div>
           </div>
@@ -681,19 +681,19 @@ function PlayerEditor({ onMsg }: { onMsg: (m: string | { text: string; type: 'su
   return (
     <div className="space-y-6">
       {/* Form */}
-      <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-4">
-        <h3 className="font-semibold text-gray-900">{editId ? '编辑选手' : '添加新选手'}</h3>
+      <div className="bg-surface border border-border rounded-xl p-5 shadow-sm space-y-4">
+        <h3 className="font-semibold text-text">{editId ? '编辑选手' : '添加新选手'}</h3>
 
         <div className="flex items-start gap-6 flex-wrap">
           <ImageUpload currentImage={avatar} onImageChange={setAvatar} size={88} label="选手照片" />
           <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <input placeholder="游戏昵称 *" value={nickname} onChange={e => setNickname(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-primary outline-none" />
-            <input placeholder="真实姓名" value={realName} onChange={e => setRealName(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-primary outline-none" />
-            <input type="number" placeholder="年龄" value={age || ''} onChange={e => setAge(parseInt(e.target.value) || 0)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-primary outline-none" />
-            <select value={gender} onChange={e => setGender(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm">
+            <input placeholder="游戏昵称 *" value={nickname} onChange={e => setNickname(e.target.value)} className="border border-border rounded-lg px-3 py-2 text-sm focus:border-accent outline-none" />
+            <input placeholder="真实姓名" value={realName} onChange={e => setRealName(e.target.value)} className="border border-border rounded-lg px-3 py-2 text-sm focus:border-accent outline-none" />
+            <input type="number" placeholder="年龄" value={age || ''} onChange={e => setAge(parseInt(e.target.value) || 0)} className="border border-border rounded-lg px-3 py-2 text-sm focus:border-accent outline-none" />
+            <select value={gender} onChange={e => setGender(e.target.value)} className="border border-border rounded-lg px-3 py-2 text-sm">
               <option value="">性别</option><option value="男">男</option><option value="女">女</option>
             </select>
-            <label className="flex items-center gap-2 text-sm text-gray-600">
+            <label className="flex items-center gap-2 text-sm text-muted">
               <input type="checkbox" checked={isCoach} onChange={e => setIsCoach(e.target.checked)} className="rounded" /> 设为教练
             </label>
           </div>
@@ -701,13 +701,13 @@ function PlayerEditor({ onMsg }: { onMsg: (m: string | { text: string; type: 'su
 
         {/* Radar attributes */}
         <div>
-          <p className="text-xs text-gray-400 mb-3">能力雷达图属性 (0-100)</p>
+          <p className="text-xs text-muted mb-3">能力雷达图属性 (0-100)</p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {attrLabels.map(({ key, label }) => (
               <div key={key} className="flex flex-col gap-1">
-                <label className="text-xs text-gray-500">{label}</label>
+                <label className="text-xs text-muted">{label}</label>
                 <input type="number" min={0} max={100} value={attrs[key]} onChange={e => setAttrs({ ...attrs, [key]: Math.min(100, Math.max(0, parseInt(e.target.value) || 0)) })}
-                  className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:border-primary outline-none" />
+                  className="border border-border rounded-lg px-3 py-1.5 text-sm focus:border-accent outline-none" />
               </div>
             ))}
           </div>
@@ -715,37 +715,37 @@ function PlayerEditor({ onMsg }: { onMsg: (m: string | { text: string; type: 'su
 
         {/* Player Honors */}
         <div>
-          <p className="text-xs text-gray-400 mb-2">个人荣誉</p>
+          <p className="text-xs text-muted mb-2">个人荣誉</p>
           {honors.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mb-2">
               {honors.map(h => (
-                <span key={h.id} className="text-xs px-2 py-0.5 bg-yellow-50 rounded text-yellow-700 flex items-center gap-1">
+                <span key={h.id} className="text-xs px-2 py-0.5 bg-accent/10 rounded text-accent flex items-center gap-1">
                   🏅 {h.title} — {h.tournamentName}
-                  <button onClick={() => removeHonor(h.id)} className="ml-1 text-red-400 hover:text-red-600"><X className="w-3 h-3" /></button>
+                  <button onClick={() => removeHonor(h.id)} className="ml-1 text-danger/70 hover:text-danger"><X className="w-3 h-3" /></button>
                 </span>
               ))}
             </div>
           )}
           <div className="flex gap-2 items-center">
-            <input placeholder="荣誉名称 (如:MVP)" value={honorTitle} onChange={e => setHonorTitle(e.target.value)} className="border border-gray-200 rounded px-2 py-1 text-xs w-28" />
-            <input placeholder="赛事名称" value={honorTournament} onChange={e => setHonorTournament(e.target.value)} className="border border-gray-200 rounded px-2 py-1 text-xs w-32" />
-            <button onClick={addHonor} className="text-xs text-primary hover:underline">添加荣誉</button>
+            <input placeholder="荣誉名称 (如:MVP)" value={honorTitle} onChange={e => setHonorTitle(e.target.value)} className="border border-border rounded px-2 py-1 text-xs w-28" />
+            <input placeholder="赛事名称" value={honorTournament} onChange={e => setHonorTournament(e.target.value)} className="border border-border rounded px-2 py-1 text-xs w-32" />
+            <button onClick={addHonor} className="text-xs text-accent hover:underline">添加荣誉</button>
           </div>
         </div>
 
         <div className="flex gap-2">
-          <button onClick={create} className="flex items-center gap-1.5 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors">
+          <button onClick={create} className="flex items-center gap-1.5 px-4 py-2 bg-accent text-white rounded-lg text-sm font-medium hover:bg-accent/90 transition-colors">
             <Save className="w-4 h-4" /> {editId ? '更新' : '添加'}
           </button>
-          {editId && <button onClick={reset} className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm">取消</button>}
+          {editId && <button onClick={reset} className="px-4 py-2 bg-border text-muted rounded-lg text-sm">取消</button>}
         </div>
       </div>
 
       {/* Player list */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-          <h3 className="font-semibold text-gray-900">现有选手 ({loadingPlayers ? '...' : players?.length || 0})</h3>
-          <button onClick={selectAll} className="text-xs text-gray-400 hover:text-primary flex items-center gap-1">
+      <div className="bg-surface border border-border rounded-xl overflow-hidden shadow-sm">
+        <div className="p-4 border-b border-border flex items-center justify-between">
+          <h3 className="font-semibold text-text">现有选手 ({loadingPlayers ? '...' : players?.length || 0})</h3>
+          <button onClick={selectAll} className="text-xs text-muted hover:text-accent flex items-center gap-1">
             {selected.length > 0 && selected.length === (players?.length ?? 0) ? <CheckSquare className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />}
             全选
           </button>
@@ -757,18 +757,18 @@ function PlayerEditor({ onMsg }: { onMsg: (m: string | { text: string; type: 'su
           <tbody>
             {players?.map(p => (
               <tr key={p.id}>
-                <td><button onClick={() => toggleSelect(p.id)} className="text-gray-300 hover:text-primary">{selected.includes(p.id) ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}</button></td>
+                <td><button onClick={() => toggleSelect(p.id)} className="text-border hover:text-accent">{selected.includes(p.id) ? <CheckSquare className="w-4 h-4 text-accent" /> : <Square className="w-4 h-4" />}</button></td>
                 <td>
                   {p.avatar ? <img src={p.avatar} alt="" className="w-8 h-8 rounded-full object-cover" />
-                    : <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs text-gray-400">{p.nickname.charAt(0)}</div>}
+                    : <div className="w-8 h-8 rounded-full bg-border flex items-center justify-center text-xs text-muted">{p.nickname.charAt(0)}</div>}
                 </td>
-                <td className="font-medium text-gray-900">{p.nickname}</td>
-                <td className="text-gray-500 text-sm">{p.realName}</td>
-                <td className="text-gray-500 text-sm">{p.age || '-'}</td>
-                <td>{p.isCoach ? <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded">教练</span> : <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded">选手</span>}</td>
+                <td className="font-medium text-text">{p.nickname}</td>
+                <td className="text-muted text-sm">{p.realName}</td>
+                <td className="text-muted text-sm">{p.age || '-'}</td>
+                <td>{p.isCoach ? <span className="text-xs px-2 py-0.5 bg-positive/15 text-positive rounded">教练</span> : <span className="text-xs px-2 py-0.5 bg-border text-muted rounded">选手</span>}</td>
                 <td className="flex gap-1.5">
-                  <button onClick={() => startEdit(p)} className="text-primary text-xs hover:underline">编辑</button>
-                  <button onClick={() => remove(p.id)} className="text-red-500 text-xs hover:underline">删除</button>
+                  <button onClick={() => startEdit(p)} className="text-accent text-xs hover:underline">编辑</button>
+                  <button onClick={() => remove(p.id)} className="text-danger text-xs hover:underline">删除</button>
                 </td>
               </tr>
             ))}
@@ -998,73 +998,73 @@ function MatchEditor({ onMsg }: { onMsg: (m: string | { text: string; type: 'suc
   return (
     <div className="space-y-6">
       {/* Create Match Form */}
-      <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-4">
-        <h3 className="font-semibold text-gray-900">录入新比赛</h3>
+      <div className="bg-surface border border-border rounded-xl p-5 shadow-sm space-y-4">
+        <h3 className="font-semibold text-text">录入新比赛</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <select value={tournamentId} onChange={e => setTournamentId(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm sm:col-span-2">
+          <select value={tournamentId} onChange={e => setTournamentId(e.target.value)} className="border border-border rounded-lg px-3 py-2 text-sm sm:col-span-2">
             <option value="">选择赛事 *</option>
             {tournaments?.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
           </select>
-          <select value={teamAId} onChange={e => setTeamAId(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm">
+          <select value={teamAId} onChange={e => setTeamAId(e.target.value)} className="border border-border rounded-lg px-3 py-2 text-sm">
             <option value="">队伍 A *</option>
             {teams?.map(t => <option key={t.id} value={t.id}>{t.name} [{t.tag}] ELO:{t.elo}</option>)}
           </select>
-          <select value={teamBId} onChange={e => setTeamBId(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm">
+          <select value={teamBId} onChange={e => setTeamBId(e.target.value)} className="border border-border rounded-lg px-3 py-2 text-sm">
             <option value="">队伍 B *</option>
             {teams?.map(t => <option key={t.id} value={t.id}>{t.name} [{t.tag}] ELO:{t.elo}</option>)}
           </select>
           <div className="flex items-center gap-2">
-            <input type="number" min="0" max="3" value={scoreA} onChange={e => setScoreA(parseInt(e.target.value) || 0)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-16 text-center" />
-            <span className="text-gray-400">:</span>
-            <input type="number" min="0" max="3" value={scoreB} onChange={e => setScoreB(parseInt(e.target.value) || 0)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-16 text-center" />
-            <span className="text-xs text-gray-400">(大比分)</span>
+            <input type="number" min="0" max="3" value={scoreA} onChange={e => setScoreA(parseInt(e.target.value) || 0)} className="border border-border rounded-lg px-3 py-2 text-sm w-16 text-center" />
+            <span className="text-muted">:</span>
+            <input type="number" min="0" max="3" value={scoreB} onChange={e => setScoreB(parseInt(e.target.value) || 0)} className="border border-border rounded-lg px-3 py-2 text-sm w-16 text-center" />
+            <span className="text-xs text-muted">(大比分)</span>
           </div>
-          <select value={format} onChange={e => setFormat(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm">
+          <select value={format} onChange={e => setFormat(e.target.value)} className="border border-border rounded-lg px-3 py-2 text-sm">
             <option value="bo1">BO1</option><option value="bo3">BO3</option><option value="bo5">BO5</option>
           </select>
-          <input type="datetime-local" value={date} onChange={e => setDate(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm sm:col-span-2" />
+          <input type="datetime-local" value={date} onChange={e => setDate(e.target.value)} className="border border-border rounded-lg px-3 py-2 text-sm sm:col-span-2" />
         </div>
 
         <div>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-gray-400">地图比分</span>
-            <button onClick={() => setMaps([...maps, { mapName: 'Mirage', scoreA: 0, scoreB: 0 }])} className="text-xs text-primary hover:underline">+ 添加地图</button>
+            <span className="text-xs text-muted">地图比分</span>
+            <button onClick={() => setMaps([...maps, { mapName: 'Mirage', scoreA: 0, scoreB: 0 }])} className="text-xs text-accent hover:underline">+ 添加地图</button>
           </div>
           <div className="space-y-2">
             {maps.map((m, i) => (
               <div key={i} className="flex items-center gap-2">
-                <select value={m.mapName} onChange={e => { const nm = [...maps]; nm[i].mapName = e.target.value; setMaps(nm); }} className="border border-gray-200 rounded px-2 py-1.5 text-xs">
+                <select value={m.mapName} onChange={e => { const nm = [...maps]; nm[i].mapName = e.target.value; setMaps(nm); }} className="border border-border rounded px-2 py-1.5 text-xs">
                   {mapOptions.map(n => <option key={n} value={n}>{n}</option>)}
                 </select>
-                <input type="number" min="0" max="16" value={m.scoreA} onChange={e => { const nm = [...maps]; nm[i].scoreA = parseInt(e.target.value) || 0; setMaps(nm); }} className="border border-gray-200 rounded px-2 py-1.5 text-xs w-14 text-center" />
-                <span className="text-gray-300 text-sm">:</span>
-                <input type="number" min="0" max="16" value={m.scoreB} onChange={e => { const nm = [...maps]; nm[i].scoreB = parseInt(e.target.value) || 0; setMaps(nm); }} className="border border-gray-200 rounded px-2 py-1.5 text-xs w-14 text-center" />
-                {maps.length > 1 && <button onClick={() => setMaps(maps.filter((_, idx) => idx !== i))} className="text-red-400 text-xs"><X className="w-3.5 h-3.5" /></button>}
+                <input type="number" min="0" max="16" value={m.scoreA} onChange={e => { const nm = [...maps]; nm[i].scoreA = parseInt(e.target.value) || 0; setMaps(nm); }} className="border border-border rounded px-2 py-1.5 text-xs w-14 text-center" />
+                <span className="text-border text-sm">:</span>
+                <input type="number" min="0" max="16" value={m.scoreB} onChange={e => { const nm = [...maps]; nm[i].scoreB = parseInt(e.target.value) || 0; setMaps(nm); }} className="border border-border rounded px-2 py-1.5 text-xs w-14 text-center" />
+                {maps.length > 1 && <button onClick={() => setMaps(maps.filter((_, idx) => idx !== i))} className="text-danger/70 text-xs"><X className="w-3.5 h-3.5" /></button>}
               </div>
             ))}
           </div>
         </div>
 
-        <button onClick={create} className="flex items-center gap-1.5 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors">
+        <button onClick={create} className="flex items-center gap-1.5 px-4 py-2 bg-accent text-white rounded-lg text-sm font-medium hover:bg-accent/90 transition-colors">
           <Save className="w-4 h-4" /> 录入比赛 (自动计算ELO)
         </button>
       </div>
 
       {/* Existing Matches + Stats Editor */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+      <div className="bg-surface border border-border rounded-xl overflow-hidden shadow-sm">
+        <div className="p-4 border-b border-border flex items-center justify-between">
           <div>
-            <h3 className="font-semibold text-gray-900">比赛数据编辑 ({loadingMatches ? '...' : sortedMatches.length} 场)</h3>
-            <p className="text-xs text-gray-400 mt-0.5">展开比赛 → 展开地图 → 添加/编辑选手数据</p>
+            <h3 className="font-semibold text-text">比赛数据编辑 ({loadingMatches ? '...' : sortedMatches.length} 场)</h3>
+            <p className="text-xs text-muted mt-0.5">展开比赛 → 展开地图 → 添加/编辑选手数据</p>
           </div>
-          <button onClick={selectAllMatches} className="text-xs text-gray-400 hover:text-primary flex items-center gap-1 shrink-0">
+          <button onClick={selectAllMatches} className="text-xs text-muted hover:text-accent flex items-center gap-1 shrink-0">
             {selectedMatches.length === sortedMatches.length && sortedMatches.length > 0 ? <CheckSquare className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />}
             全选
           </button>
         </div>
         <BatchDeleteBar selected={selectedMatches} onDelete={batchRemoveMatches} onClear={() => setSelectedMatches([])} />
         {loadingMatches ? <Spinner /> : (
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-border">
           {sortedMatches.map(m => {
             const isExpanded = expandMatchId === m.id;
             const teamA = teams?.find(t => t.id === m.teamAId);
@@ -1076,82 +1076,82 @@ function MatchEditor({ onMsg }: { onMsg: (m: string | { text: string; type: 'suc
             return (
               <div key={m.id}>
                 {/* Match Row */}
-                <div className="flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors">
-                  <button onClick={(e) => { e.stopPropagation(); toggleMatchSelect(m.id); }} className="text-gray-300 hover:text-primary shrink-0">
-                    {selectedMatches.includes(m.id) ? <CheckSquare className="w-4 h-4 text-primary" /> : <Square className="w-4 h-4" />}
+                <div className="flex items-center gap-3 p-3 hover:bg-[#1c2128] transition-colors">
+                  <button onClick={(e) => { e.stopPropagation(); toggleMatchSelect(m.id); }} className="text-border hover:text-accent shrink-0">
+                    {selectedMatches.includes(m.id) ? <CheckSquare className="w-4 h-4 text-accent" /> : <Square className="w-4 h-4" />}
                   </button>
                   <div
                     onClick={() => setExpandMatchId(isExpanded ? null : m.id)}
                     className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
                   >
-                    {isExpanded ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
-                    <span className="text-xs text-gray-400 w-20 shrink-0">{new Date(m.date).toLocaleDateString('zh-CN')}</span>
-                    <span className="text-sm font-medium text-gray-900 min-w-0 truncate">{teamA?.name || '?'} <span className="text-xs text-gray-500">{m.scoreA}:{m.scoreB}</span> {teamB?.name || '?'}</span>
-                    <span className="text-xs text-gray-400 shrink-0">[{m.format.toUpperCase()}]</span>
-                    <span className="text-xs text-gray-400 shrink-0">{tournament?.name}</span>
+                    {isExpanded ? <ChevronUp className="w-4 h-4 text-muted" /> : <ChevronDown className="w-4 h-4 text-muted" />}
+                    <span className="text-xs text-muted w-20 shrink-0">{new Date(m.date).toLocaleDateString('zh-CN')}</span>
+                    <span className="text-sm font-medium text-text min-w-0 truncate">{teamA?.name || '?'} <span className="text-xs text-muted">{m.scoreA}:{m.scoreB}</span> {teamB?.name || '?'}</span>
+                    <span className="text-xs text-muted shrink-0">[{m.format.toUpperCase()}]</span>
+                    <span className="text-xs text-muted shrink-0">{tournament?.name}</span>
                   </div>
                 </div>
 
                 {/* Expanded: Maps */}
                 {isExpanded && (
-                  <div className="bg-gray-50/50 border-t border-gray-100 px-4 py-3 space-y-3">
+                  <div className="bg-[#1c2128] border-t border-border/50 px-4 py-3 space-y-3">
                     {matchMaps.map(mm => {
                       const mapExpanded = expandMapId === mm.id;
                       const mapStats = (allStats || []).filter(s => s.matchMapId === mm.id);
                       return (
-                        <div key={mm.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                        <div key={mm.id} className="bg-surface border border-border rounded-lg overflow-hidden">
                           {editingMap?.id === mm.id ? (
                             <div className="flex items-center gap-2 px-3 py-2">
                               <select value={editingMap.mapName} onChange={e => setEditingMap({ ...editingMap, mapName: e.target.value })}
-                                className="border border-gray-200 rounded px-2 py-1 text-xs">
+                                className="border border-border rounded px-2 py-1 text-xs">
                                 {mapOptions.map(n => <option key={n} value={n}>{n}</option>)}
                               </select>
                               <input type="number" min="0" max="16" value={editingMap.scoreA} onChange={e => setEditingMap({ ...editingMap, scoreA: e.target.value })}
-                                className="border border-gray-200 rounded px-2 py-1 text-xs w-14 text-center" />
-                              <span className="text-gray-300 text-xs">:</span>
+                                className="border border-border rounded px-2 py-1 text-xs w-14 text-center" />
+                              <span className="text-border text-xs">:</span>
                               <input type="number" min="0" max="16" value={editingMap.scoreB} onChange={e => setEditingMap({ ...editingMap, scoreB: e.target.value })}
-                                className="border border-gray-200 rounded px-2 py-1 text-xs w-14 text-center" />
+                                className="border border-border rounded px-2 py-1 text-xs w-14 text-center" />
                               <div className="flex-1" />
-                              <button onClick={saveMap} className="flex items-center gap-1 px-2 py-1 bg-primary text-white rounded text-xs"><Save className="w-3 h-3" /> 保存</button>
-                              <button onClick={() => setEditingMap(null)} className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs"><X className="w-3 h-3" /></button>
+                              <button onClick={saveMap} className="flex items-center gap-1 px-2 py-1 bg-accent text-white rounded text-xs"><Save className="w-3 h-3" /> 保存</button>
+                              <button onClick={() => setEditingMap(null)} className="px-2 py-1 bg-border text-muted rounded text-xs"><X className="w-3 h-3" /></button>
                             </div>
                           ) : (
                           <div
                             onClick={() => setExpandMapId(mapExpanded ? null : mm.id)}
-                            className="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-gray-50"
+                            className="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-[#1c2128]"
                           >
                             <div className="flex items-center gap-2">
-                              {mapExpanded ? <ChevronUp className="w-3.5 h-3.5 text-gray-400" /> : <ChevronDown className="w-3.5 h-3.5 text-gray-400" />}
-                              <span className="text-sm font-medium text-gray-700">{mm.mapName}</span>
-                              <span className="text-xs text-gray-400">({mm.scoreA}:{mm.scoreB})</span>
+                              {mapExpanded ? <ChevronUp className="w-3.5 h-3.5 text-muted" /> : <ChevronDown className="w-3.5 h-3.5 text-muted" />}
+                              <span className="text-sm font-medium text-text">{mm.mapName}</span>
+                              <span className="text-xs text-muted">({mm.scoreA}:{mm.scoreB})</span>
                             </div>
                             <div className="flex items-center gap-2">
-                              <span className="text-xs text-gray-400">{mapStats.length} 条数据</span>
+                              <span className="text-xs text-muted">{mapStats.length} 条数据</span>
                               <button onClick={(e) => { e.stopPropagation(); setEditingMap({ id: mm.id, mapName: mm.mapName, scoreA: String(mm.scoreA), scoreB: String(mm.scoreB) }); setExpandMapId(null); }}
-                                className="text-xs text-primary hover:underline">编辑比分</button>
+                                className="text-xs text-accent hover:underline">编辑比分</button>
                               <button onClick={(e) => { e.stopPropagation(); removeMapFromMatch(m.id, mm.id); }}
-                                className="text-xs text-red-500 hover:underline"><Trash2 className="w-3 h-3 inline mr-0.5" />删除</button>
+                                className="text-xs text-danger hover:underline"><Trash2 className="w-3 h-3 inline mr-0.5" />删除</button>
                             </div>
                           </div>
                           )}
 
                           {mapExpanded && (
-                            <div className="border-t border-gray-100">
+                            <div className="border-t border-border/50">
                               {/* Existing stats */}
                               {mapStats.length > 0 && (
                                 <div className="overflow-x-auto">
                                   <table className="w-full text-xs">
                                     <thead>
-                                      <tr className="border-b border-gray-100">
-                                        <th className="text-left px-2 py-1.5 text-gray-400 font-medium">选手</th>
-                                        <th className="text-center px-1.5 py-1.5 text-gray-400 font-medium">K</th>
-                                        <th className="text-center px-1.5 py-1.5 text-gray-400 font-medium">D</th>
-                                        <th className="text-center px-1.5 py-1.5 text-gray-400 font-medium">A</th>
-                                        <th className="text-center px-1.5 py-1.5 text-gray-400 font-medium">ADR</th>
-                                        <th className="text-center px-1.5 py-1.5 text-gray-400 font-medium">Rating</th>
-                                        <th className="text-center px-1.5 py-1.5 text-gray-400 font-medium">HS%</th>
-                                        <th className="text-center px-1.5 py-1.5 text-gray-400 font-medium">首杀</th>
-                                        <th className="text-center px-1.5 py-1.5 text-gray-400 font-medium">残局</th>
+                                      <tr className="border-b border-border/50">
+                                        <th className="text-left px-2 py-1.5 text-muted font-medium">选手</th>
+                                        <th className="text-center px-1.5 py-1.5 text-muted font-medium">K</th>
+                                        <th className="text-center px-1.5 py-1.5 text-muted font-medium">D</th>
+                                        <th className="text-center px-1.5 py-1.5 text-muted font-medium">A</th>
+                                        <th className="text-center px-1.5 py-1.5 text-muted font-medium">ADR</th>
+                                        <th className="text-center px-1.5 py-1.5 text-muted font-medium">Rating</th>
+                                        <th className="text-center px-1.5 py-1.5 text-muted font-medium">HS%</th>
+                                        <th className="text-center px-1.5 py-1.5 text-muted font-medium">首杀</th>
+                                        <th className="text-center px-1.5 py-1.5 text-muted font-medium">残局</th>
                                         <th className="w-8"></th>
                                       </tr>
                                     </thead>
@@ -1159,17 +1159,17 @@ function MatchEditor({ onMsg }: { onMsg: (m: string | { text: string; type: 'suc
                                       {mapStats.sort((a, b) => b.rating - a.rating).map(s => {
                                         const p = players?.find(x => x.id === s.playerId);
                                         return (
-                                          <tr key={s.id} className="border-b border-gray-50 hover:bg-gray-50">
-                                            <td className="px-2 py-1.5 font-medium text-gray-700">{p?.nickname || '?'}</td>
-                                            <td className="text-center px-1.5 py-1.5 text-green-600 font-mono">{s.kills}</td>
-                                            <td className="text-center px-1.5 py-1.5 text-red-500 font-mono">{s.deaths}</td>
-                                            <td className="text-center px-1.5 py-1.5 text-gray-600 font-mono">{s.assists}</td>
-                                            <td className="text-center px-1.5 py-1.5 text-gray-700 font-mono">{s.adr.toFixed(1)}</td>
-                                            <td className={`text-center px-1.5 py-1.5 font-mono font-bold ${s.rating >= 1.2 ? 'text-green-600' : s.rating < 0.9 ? 'text-red-500' : 'text-gray-700'}`}>{s.rating.toFixed(2)}</td>
-                                            <td className="text-center px-1.5 py-1.5 text-gray-500 font-mono">{s.headshotPercent}%</td>
-                                            <td className="text-center px-1.5 py-1.5 text-gray-700 font-mono">{s.entryKills}</td>
-                                            <td className="text-center px-1.5 py-1.5 text-gray-700 font-mono">{s.clutches}</td>
-                                            <td><button onClick={() => deleteStat(s.id)} className="text-red-400 hover:text-red-600"><X className="w-3 h-3" /></button></td>
+                                          <tr key={s.id} className="border-b border-border/50 hover:bg-[#1c2128]">
+                                            <td className="px-2 py-1.5 font-medium text-text">{p?.nickname || '?'}</td>
+                                            <td className="text-center px-1.5 py-1.5 text-positive font-mono">{s.kills}</td>
+                                            <td className="text-center px-1.5 py-1.5 text-danger font-mono">{s.deaths}</td>
+                                            <td className="text-center px-1.5 py-1.5 text-muted font-mono">{s.assists}</td>
+                                            <td className="text-center px-1.5 py-1.5 text-text font-mono">{s.adr.toFixed(1)}</td>
+                                            <td className={`text-center px-1.5 py-1.5 font-mono font-bold ${s.rating >= 1.2 ? 'text-positive' : s.rating < 0.9 ? 'text-danger' : 'text-text'}`}>{s.rating.toFixed(2)}</td>
+                                            <td className="text-center px-1.5 py-1.5 text-muted font-mono">{s.headshotPercent}%</td>
+                                            <td className="text-center px-1.5 py-1.5 text-text font-mono">{s.entryKills}</td>
+                                            <td className="text-center px-1.5 py-1.5 text-text font-mono">{s.clutches}</td>
+                                            <td><button onClick={() => deleteStat(s.id)} className="text-danger/70 hover:text-danger"><X className="w-3 h-3" /></button></td>
                                           </tr>
                                         );
                                       })}
@@ -1179,35 +1179,35 @@ function MatchEditor({ onMsg }: { onMsg: (m: string | { text: string; type: 'suc
                               )}
 
                               {/* Add/Edit Stat Form */}
-                              <div className="border-t border-gray-100 p-3">
+                              <div className="border-t border-border/50 p-3">
                                 {editingStat && editingStat.matchMapId === mm.id ? (
                                   <div>
-                                    <p className="text-xs font-medium text-gray-700 mb-2">添加选手数据</p>
+                                    <p className="text-xs font-medium text-text mb-2">添加选手数据</p>
                                     <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                                      <select value={editingStat.playerId} onChange={e => setEditingStat({ ...editingStat, playerId: e.target.value })} className="border border-gray-200 rounded px-2 py-1 text-xs col-span-3 sm:col-span-2">
+                                      <select value={editingStat.playerId} onChange={e => setEditingStat({ ...editingStat, playerId: e.target.value })} className="border border-border rounded px-2 py-1 text-xs col-span-3 sm:col-span-2">
                                         <option value="">选择选手</option>
                                         {teamPlayers.map(pid => {
                                           const p = players?.find(x => x.id === pid);
                                           return p ? <option key={pid} value={pid}>{p.nickname}</option> : null;
                                         })}
                                       </select>
-                                      <input placeholder="K" value={editingStat.kills} onChange={e => setEditingStat({ ...editingStat, kills: e.target.value })} className="border border-gray-200 rounded px-2 py-1 text-xs w-full" type="number" />
-                                      <input placeholder="D" value={editingStat.deaths} onChange={e => setEditingStat({ ...editingStat, deaths: e.target.value })} className="border border-gray-200 rounded px-2 py-1 text-xs w-full" type="number" />
-                                      <input placeholder="A" value={editingStat.assists} onChange={e => setEditingStat({ ...editingStat, assists: e.target.value })} className="border border-gray-200 rounded px-2 py-1 text-xs w-full" type="number" />
-                                      <input placeholder="ADR" value={editingStat.adr} onChange={e => setEditingStat({ ...editingStat, adr: e.target.value })} className="border border-gray-200 rounded px-2 py-1 text-xs w-full" type="number" step="0.1" />
-                                      <input placeholder="Rating" value={editingStat.rating} onChange={e => setEditingStat({ ...editingStat, rating: e.target.value })} className="border border-gray-200 rounded px-2 py-1 text-xs w-full" type="number" step="0.01" />
-                                      <input placeholder="KPR" value={editingStat.kpr} onChange={e => setEditingStat({ ...editingStat, kpr: e.target.value })} className="border border-gray-200 rounded px-2 py-1 text-xs w-full" type="number" step="0.01" />
-                                      <input placeholder="HS%" value={editingStat.hs} onChange={e => setEditingStat({ ...editingStat, hs: e.target.value })} className="border border-gray-200 rounded px-2 py-1 text-xs w-full" type="number" />
-                                      <input placeholder="首杀" value={editingStat.entry} onChange={e => setEditingStat({ ...editingStat, entry: e.target.value })} className="border border-gray-200 rounded px-2 py-1 text-xs w-full" type="number" />
-                                      <input placeholder="残局" value={editingStat.clutches} onChange={e => setEditingStat({ ...editingStat, clutches: e.target.value })} className="border border-gray-200 rounded px-2 py-1 text-xs w-full" type="number" />
+                                      <input placeholder="K" value={editingStat.kills} onChange={e => setEditingStat({ ...editingStat, kills: e.target.value })} className="border border-border rounded px-2 py-1 text-xs w-full" type="number" />
+                                      <input placeholder="D" value={editingStat.deaths} onChange={e => setEditingStat({ ...editingStat, deaths: e.target.value })} className="border border-border rounded px-2 py-1 text-xs w-full" type="number" />
+                                      <input placeholder="A" value={editingStat.assists} onChange={e => setEditingStat({ ...editingStat, assists: e.target.value })} className="border border-border rounded px-2 py-1 text-xs w-full" type="number" />
+                                      <input placeholder="ADR" value={editingStat.adr} onChange={e => setEditingStat({ ...editingStat, adr: e.target.value })} className="border border-border rounded px-2 py-1 text-xs w-full" type="number" step="0.1" />
+                                      <input placeholder="Rating" value={editingStat.rating} onChange={e => setEditingStat({ ...editingStat, rating: e.target.value })} className="border border-border rounded px-2 py-1 text-xs w-full" type="number" step="0.01" />
+                                      <input placeholder="KPR" value={editingStat.kpr} onChange={e => setEditingStat({ ...editingStat, kpr: e.target.value })} className="border border-border rounded px-2 py-1 text-xs w-full" type="number" step="0.01" />
+                                      <input placeholder="HS%" value={editingStat.hs} onChange={e => setEditingStat({ ...editingStat, hs: e.target.value })} className="border border-border rounded px-2 py-1 text-xs w-full" type="number" />
+                                      <input placeholder="首杀" value={editingStat.entry} onChange={e => setEditingStat({ ...editingStat, entry: e.target.value })} className="border border-border rounded px-2 py-1 text-xs w-full" type="number" />
+                                      <input placeholder="残局" value={editingStat.clutches} onChange={e => setEditingStat({ ...editingStat, clutches: e.target.value })} className="border border-border rounded px-2 py-1 text-xs w-full" type="number" />
                                     </div>
                                     <div className="flex gap-2 mt-2">
-                                      <button onClick={saveStat} className="px-3 py-1 bg-primary text-white rounded text-xs">保存</button>
-                                      <button onClick={() => setEditingStat(null)} className="px-3 py-1 bg-gray-100 text-gray-600 rounded text-xs">取消</button>
+                                      <button onClick={saveStat} className="px-3 py-1 bg-accent text-white rounded text-xs">保存</button>
+                                      <button onClick={() => setEditingStat(null)} className="px-3 py-1 bg-border text-muted rounded text-xs">取消</button>
                                     </div>
                                   </div>
                                 ) : (
-                                  <button onClick={() => startAddStat(mm.id)} className="flex items-center gap-1 text-xs text-primary hover:underline">
+                                  <button onClick={() => startAddStat(mm.id)} className="flex items-center gap-1 text-xs text-accent hover:underline">
                                     <Plus className="w-3 h-3" /> 添加选手数据
                                   </button>
                                 )}
@@ -1218,10 +1218,10 @@ function MatchEditor({ onMsg }: { onMsg: (m: string | { text: string; type: 'suc
                       );
                     })}
                     <div className="flex items-center gap-2 mt-2">
-                      <select value={newMapName} onChange={e => setNewMapName(e.target.value)} className="border border-gray-200 rounded px-2 py-1 text-xs">
+                      <select value={newMapName} onChange={e => setNewMapName(e.target.value)} className="border border-border rounded px-2 py-1 text-xs">
                         {mapOptions.map(n => <option key={n} value={n}>{n}</option>)}
                       </select>
-                      <button onClick={() => addMapToMatch(m.id)} className="flex items-center gap-1 text-xs text-primary hover:underline">
+                      <button onClick={() => addMapToMatch(m.id)} className="flex items-center gap-1 text-xs text-accent hover:underline">
                         <Plus className="w-3 h-3" /> 添加
                       </button>
                     </div>
@@ -1368,14 +1368,14 @@ function BracketEditor({ onMsg }: { onMsg: (m: string | { text: string; type: 's
   return (
     <div className="space-y-6">
       {/* Select Tournament & Bracket Type */}
-      <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-4">
-        <h3 className="font-semibold text-gray-900">对阵图编辑</h3>
+      <div className="bg-surface border border-border rounded-xl p-5 shadow-sm space-y-4">
+        <h3 className="font-semibold text-text">对阵图编辑</h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <select value={tournamentId} onChange={e => selectTournament(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm">
+          <select value={tournamentId} onChange={e => selectTournament(e.target.value)} className="border border-border rounded-lg px-3 py-2 text-sm">
             <option value="">选择赛事</option>
             {tournaments?.map(t => <option key={t.id} value={t.id}>{t.name} ({t.teams?.length || 0}队)</option>)}
           </select>
-          <select value={bracketType} onChange={e => setBracketType(e.target.value)} className="border border-gray-200 rounded-lg px-3 py-2 text-sm">
+          <select value={bracketType} onChange={e => setBracketType(e.target.value)} className="border border-border rounded-lg px-3 py-2 text-sm">
             <option value="">选择对阵图类型</option>
             <option value="4_single">4队单淘 (3场)</option>
             <option value="4_double">4队双淘 (6场)</option>
@@ -1383,12 +1383,12 @@ function BracketEditor({ onMsg }: { onMsg: (m: string | { text: string; type: 's
             <option value="8_double">8队双淘 (14场)</option>
           </select>
           <button onClick={generateSlots} disabled={!tournamentId || !bracketType}
-            className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed hover:bg-primary-dark transition-colors">
+            className="px-4 py-2 bg-accent text-white rounded-lg text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed hover:bg-accent/90 transition-colors">
             生成/重新生成对阵图
           </button>
         </div>
         {currentType && (
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-muted">
             当前类型：{currentType === '4_single' ? '4队单淘' : currentType === '4_double' ? '4队双淘' : currentType === '8_single' ? '8队单淘' : currentType}
             {slots.length > 0 && ` · ${slots.length} 个槽位`}
           </p>
@@ -1397,31 +1397,31 @@ function BracketEditor({ onMsg }: { onMsg: (m: string | { text: string; type: 's
 
       {/* Slot Cards with Edit Buttons */}
       {slots.length > 0 && tournament && (
-        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-4">
-          <h3 className="font-semibold text-gray-900">槽位编辑</h3>
-          <p className="text-xs text-gray-400">点击编辑按钮为每个槽位关联比赛和队伍</p>
+        <div className="bg-surface border border-border rounded-xl p-5 shadow-sm space-y-4">
+          <h3 className="font-semibold text-text">槽位编辑</h3>
+          <p className="text-xs text-muted">点击编辑按钮为每个槽位关联比赛和队伍</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {slots.map(s => {
               const m = slotMatches.get(s.id) ?? null;
               const teamA = teams?.find(t => t.id === (m?.teamAId || s.teamAId));
               const teamB = teams?.find(t => t.id === (m?.teamBId || s.teamBId));
               return (
-                <div key={s.id} className="border border-gray-200 rounded-lg p-3 space-y-1.5">
+                <div key={s.id} className="border border-border rounded-lg p-3 space-y-1.5">
                   <div className="flex items-center justify-between">
                     <span className={`text-xs font-semibold px-2 py-0.5 rounded ${
-                      s.round.startsWith('ub') ? 'bg-green-100 text-green-700' :
-                      s.round.startsWith('lb') ? 'bg-amber-100 text-amber-700' :
-                      'bg-primary/10 text-primary'
+                      s.round.startsWith('ub') ? 'bg-positive/15 text-positive' :
+                      s.round.startsWith('lb') ? 'bg-accent/10 text-accent' :
+                      'bg-accent/15 text-accent'
                     }`}>{s.label}</span>
                     <div className="flex gap-1">
-                      <button onClick={() => startEditSlot(s)} className="px-2 py-0.5 text-xs bg-green-50 text-green-600 border border-green-200 rounded hover:bg-green-100">编辑</button>
-                      {s.matchId && <button onClick={() => deleteSlotMatch(s)} className="px-2 py-0.5 text-xs bg-red-50 text-red-500 border border-red-200 rounded hover:bg-red-100">清除</button>}
+                      <button onClick={() => startEditSlot(s)} className="px-2 py-0.5 text-xs bg-positive/10 text-positive border border-positive/30 rounded hover:bg-positive/15">编辑</button>
+                      {s.matchId && <button onClick={() => deleteSlotMatch(s)} className="px-2 py-0.5 text-xs bg-danger/10 text-danger border border-danger/30 rounded hover:bg-danger/15">清除</button>}
                     </div>
                   </div>
-                  <div className="text-xs text-gray-600">
+                  <div className="text-xs text-muted">
                     <div>{teamA?.name || 'TBD'} {m ? `(${m.scoreA}:${m.scoreB})` : ''} vs {teamB?.name || 'TBD'}</div>
-                    {m && <div className="text-gray-400">{new Date(m.date).toLocaleString('zh-CN')} · {m.status === 'finished' ? '已结束' : '预告'}</div>}
-                    {!m && <div className="text-gray-300">未关联比赛</div>}
+                    {m && <div className="text-muted">{new Date(m.date).toLocaleString('zh-CN')} · {m.status === 'finished' ? '已结束' : '预告'}</div>}
+                    {!m && <div className="text-border">未关联比赛</div>}
                   </div>
                 </div>
               );
@@ -1429,15 +1429,15 @@ function BracketEditor({ onMsg }: { onMsg: (m: string | { text: string; type: 's
           </div>
 
           {/* Bracket Preview */}
-          <div className="border-t border-gray-200 pt-4 mt-4">
-            <h4 className="font-semibold text-gray-900 mb-3">对阵图预览</h4>
+          <div className="border-t border-border pt-4 mt-4">
+            <h4 className="font-semibold text-text mb-3">对阵图预览</h4>
             <BracketView slots={slots} allMatches={allMatches || []} teams={teams || []} editable onEditSlot={startEditSlot} onDeleteSlot={deleteSlotMatch} />
           </div>
         </div>
       )}
 
       {(!tournamentId || slots.length === 0) && (
-        <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm text-center text-gray-400 text-sm">
+        <div className="bg-surface border border-border rounded-xl p-8 shadow-sm text-center text-muted text-sm">
           请先选择赛事和对阵图类型，然后点击"生成对阵图"
         </div>
       )}
@@ -1448,24 +1448,24 @@ function BracketEditor({ onMsg }: { onMsg: (m: string | { text: string; type: 's
         if (!slot) return null;
         return (
           <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center" onClick={() => setEditingSlotId(null)}>
-            <div className="bg-white rounded-xl p-6 shadow-xl w-full max-w-md mx-4" onClick={e => e.stopPropagation()}>
-              <h3 className="font-semibold text-gray-900 mb-4">编辑 {slot.label}</h3>
+            <div className="bg-surface rounded-xl p-6 shadow-xl w-full max-w-md mx-4" onClick={e => e.stopPropagation()}>
+              <h3 className="font-semibold text-text mb-4">编辑 {slot.label}</h3>
               <div className="space-y-3">
                 <div>
-                  <label className="text-xs text-gray-500 block mb-1">比赛时间</label>
-                  <input type="datetime-local" value={editForm.date} onChange={e => setEditForm({ ...editForm, date: e.target.value })} className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full focus:border-primary outline-none" />
+                  <label className="text-xs text-muted block mb-1">比赛时间</label>
+                  <input type="datetime-local" value={editForm.date} onChange={e => setEditForm({ ...editForm, date: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm w-full focus:border-accent outline-none" />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-xs text-gray-500 block mb-1">队伍 A</label>
-                    <select value={editForm.teamAId} onChange={e => setEditForm({ ...editForm, teamAId: e.target.value })} className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full focus:border-primary outline-none">
+                    <label className="text-xs text-muted block mb-1">队伍 A</label>
+                    <select value={editForm.teamAId} onChange={e => setEditForm({ ...editForm, teamAId: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm w-full focus:border-accent outline-none">
                       <option value="">选择队伍</option>
                       {tournament?.teams?.map((tid: string) => { const t = teams?.find(x => x.id === tid); return t ? <option key={tid} value={tid}>{t.name}</option> : null; })}
                     </select>
                   </div>
                   <div>
-                    <label className="text-xs text-gray-500 block mb-1">队伍 B</label>
-                    <select value={editForm.teamBId} onChange={e => setEditForm({ ...editForm, teamBId: e.target.value })} className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full focus:border-primary outline-none">
+                    <label className="text-xs text-muted block mb-1">队伍 B</label>
+                    <select value={editForm.teamBId} onChange={e => setEditForm({ ...editForm, teamBId: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm w-full focus:border-accent outline-none">
                       <option value="">选择队伍</option>
                       {tournament?.teams?.map((tid: string) => { const t = teams?.find(x => x.id === tid); return t ? <option key={tid} value={tid}>{t.name}</option> : null; })}
                     </select>
@@ -1473,17 +1473,17 @@ function BracketEditor({ onMsg }: { onMsg: (m: string | { text: string; type: 's
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-xs text-gray-500 block mb-1">比分 A</label>
-                    <input type="number" min="0" max="3" value={editForm.scoreA} onChange={e => setEditForm({ ...editForm, scoreA: e.target.value })} className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full focus:border-primary outline-none" />
+                    <label className="text-xs text-muted block mb-1">比分 A</label>
+                    <input type="number" min="0" max="3" value={editForm.scoreA} onChange={e => setEditForm({ ...editForm, scoreA: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm w-full focus:border-accent outline-none" />
                   </div>
                   <div>
-                    <label className="text-xs text-gray-500 block mb-1">比分 B</label>
-                    <input type="number" min="0" max="3" value={editForm.scoreB} onChange={e => setEditForm({ ...editForm, scoreB: e.target.value })} className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full focus:border-primary outline-none" />
+                    <label className="text-xs text-muted block mb-1">比分 B</label>
+                    <input type="number" min="0" max="3" value={editForm.scoreB} onChange={e => setEditForm({ ...editForm, scoreB: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm w-full focus:border-accent outline-none" />
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs text-gray-500 block mb-1">赛制</label>
-                  <select value={editForm.format} onChange={e => setEditForm({ ...editForm, format: e.target.value })} className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full focus:border-primary outline-none">
+                  <label className="text-xs text-muted block mb-1">赛制</label>
+                  <select value={editForm.format} onChange={e => setEditForm({ ...editForm, format: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm w-full focus:border-accent outline-none">
                     <option value="bo1">BO1</option>
                     <option value="bo3">BO3</option>
                     <option value="bo5">BO5</option>
@@ -1491,8 +1491,8 @@ function BracketEditor({ onMsg }: { onMsg: (m: string | { text: string; type: 's
                 </div>
               </div>
               <div className="flex gap-2 mt-4 justify-end">
-                <button onClick={() => setEditingSlotId(null)} className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm"><X className="w-4 h-4 inline mr-1" />取消</button>
-                <button onClick={() => saveSlotMatch(slot)} className="px-4 py-2 bg-primary text-white rounded-lg text-sm"><Save className="w-4 h-4 inline mr-1" />保存</button>
+                <button onClick={() => setEditingSlotId(null)} className="px-4 py-2 bg-border text-muted rounded-lg text-sm"><X className="w-4 h-4 inline mr-1" />取消</button>
+                <button onClick={() => saveSlotMatch(slot)} className="px-4 py-2 bg-accent text-white rounded-lg text-sm"><Save className="w-4 h-4 inline mr-1" />保存</button>
               </div>
             </div>
           </div>

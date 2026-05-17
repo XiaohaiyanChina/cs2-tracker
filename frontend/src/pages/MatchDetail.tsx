@@ -1,19 +1,19 @@
 import { useParams, Link } from 'react-router-dom';
 import { useMatch, useMatchMaps, useMatchStats, usePlayers, useTeams, useTournaments } from '../hooks/useData';
-import { ChevronLeft, Trophy, Calendar, Target } from 'lucide-react';
+import { ChevronLeft, Trophy, Calendar } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import type { MatchStat } from '../types';
 
 const STAT_COLS = [
-  { key: 'kills', label: 'K', color: 'text-green-600' },
-  { key: 'deaths', label: 'D', color: 'text-red-500' },
-  { key: 'assists', label: 'A', color: 'text-gray-600' },
+  { key: 'kills', label: 'K', color: 'text-positive' },
+  { key: 'deaths', label: 'D', color: 'text-danger' },
+  { key: 'assists', label: 'A', color: 'text-info' },
   { key: 'kd', label: '+/-', color: '' },
-  { key: 'adr', label: 'ADR', color: 'text-gray-700' },
+  { key: 'adr', label: 'ADR', color: 'text-muted' },
   { key: 'rating', label: 'Rating', color: '' },
-  { key: 'hs', label: 'HS%', color: 'text-gray-500' },
-  { key: 'entry', label: '首杀', color: 'text-gray-700' },
-  { key: 'clutches', label: '残局', color: 'text-gray-700' },
+  { key: 'hs', label: 'HS%', color: 'text-muted' },
+  { key: 'entry', label: '首杀', color: 'text-muted' },
+  { key: 'clutches', label: '残局', color: 'text-muted' },
 ];
 
 function SideBySideStats({ stats, players, teams, match, showMaps }: { stats: any[], players: any, teams: any, match: any, showMaps?: boolean }) {
@@ -47,56 +47,56 @@ function SideBySideStats({ stats, players, teams, match, showMaps }: { stats: an
   function getColor(s: any, key: string) {
     if (key === 'kd') {
       const d = s.kills - s.deaths;
-      return d >= 0 ? 'text-green-600' : 'text-red-500';
+      return d >= 0 ? 'text-positive' : 'text-danger';
     }
     if (key === 'rating') {
       const r = s.rating ?? 0;
-      return r >= 1.2 ? 'text-green-600' : r < 0.9 ? 'text-red-500' : 'text-gray-700';
+      return r >= 1.2 ? 'text-positive' : r < 0.9 ? 'text-danger' : 'text-muted';
     }
-    return STAT_COLS.find(c => c.key === key)?.color || 'text-gray-700';
+    return STAT_COLS.find(c => c.key === key)?.color || 'text-muted';
   }
 
   function renderSide(statsArr: any[], sideTeam: any) {
     return (
       <div className="flex-1 min-w-0">
-        <div className="px-4 py-2 bg-gray-50 border-b border-gray-100">
-          <span className="text-sm font-semibold text-gray-700">{sideTeam?.name || 'TBD'}</span>
-          <span className="text-xs text-gray-400 ml-1">[{sideTeam?.tag}]</span>
+        <div className="px-3 py-2 bg-[#1c2128] border-b border-border">
+          <span className="text-xs font-semibold text-text">{sideTeam?.name || 'TBD'}</span>
+          <span className="text-[10px] text-muted ml-1">[{sideTeam?.tag}]</span>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-[11px]">
             <thead>
-              <tr className="border-b border-gray-100">
-                <th className="text-left px-3 py-2 text-xs text-gray-400 font-medium">选手</th>
-                {showMaps && <th className="text-center px-2 py-2 text-xs text-gray-400 font-medium">图</th>}
+              <tr className="border-b border-border">
+                <th className="text-left px-2 py-1.5 text-[10px] text-muted font-medium">选手</th>
+                {showMaps && <th className="text-center px-2 py-1.5 text-[10px] text-muted font-medium">图</th>}
                 {STAT_COLS.map(c => (
-                  <th key={c.key} className="text-center px-2 py-2 text-xs text-gray-400 font-medium">{c.label}</th>
+                  <th key={c.key} className="text-center px-1.5 py-1.5 text-[10px] text-muted font-medium">{c.label}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {statsArr.length === 0 ? (
-                <tr><td colSpan={STAT_COLS.length + (showMaps ? 2 : 1)} className="text-center text-gray-400 py-6">暂无数据</td></tr>
+                <tr><td colSpan={STAT_COLS.length + (showMaps ? 2 : 1)} className="text-center text-muted py-6 text-xs">暂无数据</td></tr>
               ) : (
                 statsArr.map((s: any) => {
                   const p = players?.find((x: any) => x.id === s.playerId);
                   return (
-                    <tr key={s.playerId + (s.id || '')} className="border-b border-gray-50 hover:bg-gray-50/50">
-                      <td className="px-3 py-2">
-                        <Link to={`/players/${p?.id}`} className="flex items-center gap-2 hover:text-primary transition-colors">
+                    <tr key={s.playerId + (s.id || '')} className="border-b border-border/50 hover:bg-[#1c2128]">
+                      <td className="px-2 py-1.5">
+                        <Link to={`/players/${p?.id}`} className="flex items-center gap-1.5 hover:text-accent transition-colors">
                           {p?.avatar ? (
-                            <img src={p.avatar} alt="" className="w-6 h-6 rounded-full object-cover" />
+                            <img src={p.avatar} alt="" className="w-5 h-5 rounded-full object-cover" />
                           ) : (
-                            <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-500">
+                            <div className="w-5 h-5 rounded-full bg-border flex items-center justify-center text-[9px] font-bold text-muted">
                               {p?.nickname?.charAt(0) || '?'}
                             </div>
                           )}
-                          <span className="text-sm font-medium text-gray-900 truncate max-w-[100px]">{p?.nickname || '?'}</span>
+                          <span className="text-xs font-medium text-text truncate max-w-[80px]">{p?.nickname || '?'}</span>
                         </Link>
                       </td>
-                      {showMaps && <td className="text-center font-mono text-xs text-gray-400">{s.maps}</td>}
+                      {showMaps && <td className="text-center font-mono text-[10px] text-muted">{s.maps}</td>}
                       {STAT_COLS.map(c => (
-                        <td key={c.key} className={`text-center px-2 py-2 font-mono text-xs font-bold ${getColor(s, c.key)}`}>
+                        <td key={c.key} className={`text-center px-1.5 py-1.5 font-mono text-[10px] font-bold ${getColor(s, c.key)}`}>
                           {getVal(s, c.key)}
                         </td>
                       ))}
@@ -112,7 +112,7 @@ function SideBySideStats({ stats, players, teams, match, showMaps }: { stats: an
   }
 
   return (
-    <div className="flex divide-x divide-gray-200">
+    <div className="flex divide-x divide-border">
       {renderSide(sideA, teamA)}
       {renderSide(sideB, teamB)}
     </div>
@@ -175,16 +175,16 @@ export default function MatchDetail() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   if (!match) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-16 text-center text-gray-400">
-        <Target className="w-16 h-16 mx-auto mb-4 opacity-20" />
-        <p className="text-lg">比赛未找到</p>
+      <div className="max-w-4xl mx-auto px-4 py-16 text-center text-muted">
+        <Calendar className="w-12 h-12 mx-auto mb-3 opacity-20" />
+        <p className="text-sm">比赛未找到</p>
       </div>
     );
   }
@@ -193,7 +193,6 @@ export default function MatchDetail() {
   const teamAWon = match.scoreA > match.scoreB;
   const teamBWon = match.scoreB > match.scoreA;
 
-  // Build tabs: aggregate + each map
   const tabDefs = [
     { key: 'aggregate', label: '总数据' },
     ...(maps as any[]).map((map: any, i: number) => ({
@@ -202,7 +201,6 @@ export default function MatchDetail() {
     })),
   ];
 
-  // Determine which stats to show based on active tab
   let activeStats: any[];
   let activeTitle: string;
   let activeShowMaps = false;
@@ -210,114 +208,114 @@ export default function MatchDetail() {
 
   if (tab === 'aggregate') {
     activeStats = aggregateStats;
-    activeTitle = `系列赛总数据 (${match.format.toUpperCase()})`;
+    activeTitle = '系列赛总数据';
     activeShowMaps = true;
   } else {
     const map = maps.find((m: any) => m.id === tab) as any;
     const rawStats = mapStats.get(tab) || [];
     activeStats = rawStats.sort((a: any, b: any) => b.rating - a.rating);
     activeTitle = map?.mapName || '';
-    activeSubtitle = map ? `${map.scoreA}:${map.scoreB}${map.pickTeam ? ` · pick: ${teams?.find(t => t.id === map.pickTeam)?.tag || map.pickTeam}` : ''}` : '';
+    activeSubtitle = map ? `${map.scoreA}:${map.scoreB}${map.pickTeam ? ' · pick: ' + (teams?.find(t => t.id === map.pickTeam)?.tag || map.pickTeam) : ''}` : '';
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6">
-      <Link to="/" className="flex items-center gap-1 text-gray-400 hover:text-gray-600 text-sm mb-4 transition-colors">
-        <ChevronLeft className="w-4 h-4" /> 返回赛程中心
+    <div className="max-w-4xl mx-auto px-4 py-5">
+      <Link to="/" className="inline-flex items-center gap-1 text-muted hover:text-text text-[11px] mb-4 transition-colors">
+        <ChevronLeft className="w-3.5 h-3.5" /> 返回赛程
       </Link>
 
       {/* Match Header */}
-      <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6 shadow-sm">
+      <div className="bg-surface border border-border rounded-lg p-5 mb-4">
         <div className="text-center mb-4">
-          <div className="flex items-center justify-center gap-2 text-sm text-gray-500 mb-1">
-            <Calendar className="w-4 h-4" />
+          <div className="flex items-center justify-center gap-2 text-[11px] text-muted mb-1.5">
+            <Calendar className="w-3.5 h-3.5" />
             <span>{new Date(match.date).toLocaleDateString('zh-CN')} {new Date(match.date).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}</span>
             {tournament && (
               <>
-                <span className="text-gray-300">|</span>
-                <Trophy className="w-4 h-4 text-yellow-500" />
-                <span className="text-primary font-medium">{tournament.name}</span>
+                <span className="text-border">|</span>
+                <Trophy className="w-3.5 h-3.5 text-accent" />
+                <span className="text-accent font-medium">{tournament.name}</span>
               </>
             )}
           </div>
-          <span className={`inline-block text-xs font-bold px-2 py-0.5 rounded mt-1 ${
-            match.status === 'live' ? 'bg-red-500 text-white animate-pulse' :
-            finished ? 'bg-gray-100 text-gray-500' :
-            'bg-blue-100 text-blue-600'
+          <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded mt-1 ${
+            match.status === 'live' ? 'bg-danger text-white animate-pulse' :
+            finished ? 'bg-border text-muted' :
+            'bg-info/15 text-info'
           }`}>
             {match.status === 'live' ? 'LIVE' : finished ? match.format.toUpperCase() : '即将开始'}
           </span>
         </div>
 
         <div className="flex items-center justify-center gap-6">
-          <div className="flex flex-col items-center gap-2 w-40">
+          <div className="flex flex-col items-center gap-2 w-36">
             {teamA?.logo ? (
-              <img src={teamA.logo} alt="" className="w-16 h-16 rounded-full object-cover border-2 border-primary/20" />
+              <img src={teamA.logo} alt="" className="w-14 h-14 rounded-full object-cover border-2 border-border" />
             ) : (
-              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-2xl font-bold text-primary">{teamA?.tag?.charAt(0) || '?'}</span>
+              <div className="w-14 h-14 rounded-full bg-accent/15 flex items-center justify-center">
+                <span className="text-2xl font-bold text-accent">{teamA?.tag?.charAt(0) || '?'}</span>
               </div>
             )}
-            <Link to={`/teams/${teamA?.id}`} className="font-semibold text-gray-900 hover:text-primary transition-colors text-center">
+            <Link to={`/teams/${teamA?.id}`} className="font-semibold text-text hover:text-accent transition-colors text-center text-sm">
               {teamA?.name || 'TBD'}
             </Link>
-            <span className="text-xs text-gray-400">[{teamA?.tag}]</span>
+            <span className="text-[10px] text-muted">[{teamA?.tag}]</span>
           </div>
 
           <div className="text-center shrink-0">
             {finished ? (
               <>
                 <div className="flex items-baseline gap-3">
-                  <span className={`text-5xl font-bold tabular-nums ${teamAWon ? 'text-gray-900' : 'text-gray-300'}`}>
+                  <span className={`text-4xl font-bold tabular-nums ${teamAWon ? 'text-text' : 'text-muted/50'}`}>
                     {match.scoreA}
                   </span>
-                  <span className="text-3xl text-gray-300 font-light">:</span>
-                  <span className={`text-5xl font-bold tabular-nums ${teamBWon ? 'text-gray-900' : 'text-gray-300'}`}>
+                  <span className="text-2xl text-border font-light">:</span>
+                  <span className={`text-4xl font-bold tabular-nums ${teamBWon ? 'text-text' : 'text-muted/50'}`}>
                     {match.scoreB}
                   </span>
                 </div>
                 {match.eloChangeA !== 0 && (
-                  <div className="flex justify-center gap-4 mt-2 text-xs">
-                    <span className={match.eloChangeA > 0 ? 'text-green-600' : 'text-red-500'}>
+                  <div className="flex justify-center gap-4 mt-2 text-[10px]">
+                    <span className={match.eloChangeA > 0 ? 'text-positive font-semibold' : 'text-danger'}>
                       {match.eloChangeA > 0 ? '+' : ''}{match.eloChangeA} ELO
                     </span>
-                    <span className={match.eloChangeB > 0 ? 'text-green-600' : 'text-red-500'}>
+                    <span className={match.eloChangeB > 0 ? 'text-positive font-semibold' : 'text-danger'}>
                       {match.eloChangeB > 0 ? '+' : ''}{match.eloChangeB} ELO
                     </span>
                   </div>
                 )}
               </>
             ) : (
-              <span className="text-3xl font-bold text-gray-300">VS</span>
+              <span className="text-2xl font-bold text-muted">VS</span>
             )}
           </div>
 
-          <div className="flex flex-col items-center gap-2 w-40">
+          <div className="flex flex-col items-center gap-2 w-36">
             {teamB?.logo ? (
-              <img src={teamB.logo} alt="" className="w-16 h-16 rounded-full object-cover border-2 border-primary/20" />
+              <img src={teamB.logo} alt="" className="w-14 h-14 rounded-full object-cover border-2 border-border" />
             ) : (
-              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-2xl font-bold text-primary">{teamB?.tag?.charAt(0) || '?'}</span>
+              <div className="w-14 h-14 rounded-full bg-accent/15 flex items-center justify-center">
+                <span className="text-2xl font-bold text-accent">{teamB?.tag?.charAt(0) || '?'}</span>
               </div>
             )}
-            <Link to={`/teams/${teamB?.id}`} className="font-semibold text-gray-900 hover:text-primary transition-colors text-center">
+            <Link to={`/teams/${teamB?.id}`} className="font-semibold text-text hover:text-accent transition-colors text-center text-sm">
               {teamB?.name || 'TBD'}
             </Link>
-            <span className="text-xs text-gray-400">[{teamB?.tag}]</span>
+            <span className="text-[10px] text-muted">[{teamB?.tag}]</span>
           </div>
         </div>
       </div>
 
       {/* Tab bar */}
-      <div className="flex gap-1 bg-white rounded-lg border border-gray-200 p-1 mb-4 overflow-x-auto">
+      <div className="flex gap-1 bg-surface rounded-lg border border-border p-1 mb-3 overflow-x-auto">
         {tabDefs.map(({ key, label }) => (
           <button
             key={key}
             onClick={() => setTab(key)}
-            className={`shrink-0 px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+            className={`shrink-0 px-3 py-1.5 rounded-md text-[11px] font-medium transition-colors whitespace-nowrap ${
               tab === key
-                ? 'bg-primary text-white shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'bg-accent text-white shadow-sm'
+                : 'text-muted hover:text-text'
             }`}
           >
             {label}
@@ -326,10 +324,10 @@ export default function MatchDetail() {
       </div>
 
       {/* Stat content */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-        <div className="px-4 py-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="font-semibold text-gray-900">{activeTitle}</h2>
-          {activeSubtitle && <span className="text-sm text-gray-500">{activeSubtitle}</span>}
+      <div className="bg-surface border border-border rounded-lg overflow-hidden">
+        <div className="px-3 py-2 bg-[#1c2128] border-b border-border flex items-center justify-between">
+          <h2 className="font-semibold text-text text-xs">{activeTitle}</h2>
+          {activeSubtitle && <span className="text-[11px] text-muted">{activeSubtitle}</span>}
         </div>
         <SideBySideStats
           stats={activeStats}
@@ -341,9 +339,9 @@ export default function MatchDetail() {
       </div>
 
       {maps.length === 0 && match.status === 'upcoming' && (
-        <div className="bg-white border border-gray-200 rounded-xl p-12 text-center text-gray-400 mt-6">
-          <Calendar className="w-12 h-12 mx-auto mb-3 opacity-20" />
-          <p>比赛尚未开始，地图数据待公布</p>
+        <div className="bg-surface border border-border rounded-lg p-10 text-center text-muted mt-4">
+          <Calendar className="w-10 h-10 mx-auto mb-2 opacity-20" />
+          <p className="text-xs">比赛尚未开始，地图数据待公布</p>
         </div>
       )}
     </div>

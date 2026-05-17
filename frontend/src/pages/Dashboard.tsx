@@ -17,74 +17,86 @@ function MatchCard({ match, teams }: { match: Match; teams: Team[] }) {
   const teamB = teams.find(t => t.id === match.teamBId);
   const isLive = match.status === 'live';
   const finished = match.status === 'finished';
-  const teamAWon = match.scoreA > match.scoreB;
-  const teamBWon = match.scoreB > match.scoreA;
+  const teamAWon = finished && match.scoreA > match.scoreB;
+  const teamBWon = finished && match.scoreB > match.scoreA;
 
   return (
     <Link
       to={`/matches/${match.id}`}
-      className="block bg-white border border-gray-200 rounded-lg p-4 hover:border-primary/30 hover:shadow-md transition-all"
+      className={`block bg-surface border rounded-md px-3.5 py-2.5 hover:border-accent/40 transition-all ${
+        isLive ? 'border-danger/30 ring-1 ring-danger/20' : 'border-border'
+      }`}
     >
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-xs text-gray-400">
-          {new Date(match.date).toLocaleDateString('zh-CN')} {' '}
-          {new Date(match.date).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
-        </span>
-        <span className={`text-xs font-bold px-2 py-0.5 rounded ${
-          isLive ? 'bg-red-500 text-white animate-pulse' :
-          finished ? 'bg-gray-100 text-gray-500' :
-          'bg-blue-100 text-blue-600'
-        }`}>
-          {isLive ? 'LIVE' : finished ? match.format.toUpperCase() : '预告'}
-        </span>
-      </div>
-
       <div className="flex items-center gap-3">
+        {/* Time / Status */}
+        <div className="w-12 shrink-0 text-right">
+          {isLive ? (
+            <div className="flex items-center justify-end gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-danger animate-pulse" />
+              <span className="text-[10px] font-bold text-danger uppercase">LIVE</span>
+            </div>
+          ) : (
+            <span className="text-[10px] text-muted leading-tight">
+              {new Date(match.date).toLocaleDateString('zh-CN')}<br/>
+              {new Date(match.date).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          )}
+        </div>
+
         {/* Team A */}
-        <div className="flex-1 text-right min-w-0">
+        <div className="flex-1 min-w-0 text-right">
           <div className="flex items-center justify-end gap-2">
-            <span className={`font-semibold text-sm truncate ${teamAWon ? 'text-gray-900' : 'text-gray-400'}`}>
+            <span className={`text-xs font-semibold truncate ${teamAWon ? 'text-text' : 'text-muted'}`}>
               {teamA?.name || 'TBD'}
             </span>
-            {teamA?.logo && <img src={teamA.logo} alt="" className="w-6 h-6 rounded-full object-cover" />}
+            {teamA?.logo && <img src={teamA.logo} alt="" className="w-5 h-5 rounded-full object-cover shrink-0" />}
           </div>
         </div>
 
         {/* Score */}
-        <div className="shrink-0 text-center">
+        <div className="shrink-0 text-center min-w-[60px]">
           {finished ? (
-            <div className="flex items-center gap-1.5">
-              <span className={`text-xl font-bold tabular-nums ${teamAWon ? 'text-gray-900' : 'text-gray-400'}`}>
+            <div className="flex items-center justify-center gap-1.5">
+              <span className={`text-lg font-bold tabular-nums ${teamAWon ? 'text-text' : 'text-muted'}`}>
                 {match.scoreA}
               </span>
-              <span className="text-gray-300">:</span>
-              <span className={`text-xl font-bold tabular-nums ${teamBWon ? 'text-gray-900' : 'text-gray-400'}`}>
+              <span className="text-border text-sm">:</span>
+              <span className={`text-lg font-bold tabular-nums ${teamBWon ? 'text-text' : 'text-muted'}`}>
                 {match.scoreB}
               </span>
             </div>
           ) : (
-            <span className="text-sm font-bold text-gray-400">VS</span>
+            <span className="text-xs font-bold text-muted">vs</span>
           )}
         </div>
 
         {/* Team B */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            {teamB?.logo && <img src={teamB.logo} alt="" className="w-6 h-6 rounded-full object-cover" />}
-            <span className={`font-semibold text-sm truncate ${teamBWon ? 'text-gray-900' : 'text-gray-400'}`}>
+            {teamB?.logo && <img src={teamB.logo} alt="" className="w-5 h-5 rounded-full object-cover shrink-0" />}
+            <span className={`text-xs font-semibold truncate ${teamBWon ? 'text-text' : 'text-muted'}`}>
               {teamB?.name || 'TBD'}
             </span>
           </div>
         </div>
+
+        {/* Format badge */}
+        <span className={`shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded ${
+          isLive ? 'bg-danger text-white' :
+          finished ? 'bg-border text-muted' :
+          'bg-info/15 text-info'
+        }`}>
+          {isLive ? 'LIVE' : match.format.toUpperCase()}
+        </span>
       </div>
 
       {/* ELO change */}
       {finished && match.eloChangeA !== 0 && (
-        <div className="flex justify-between mt-2 text-[11px]">
-          <span className={match.eloChangeA > 0 ? 'text-green-600' : 'text-red-500'}>
+        <div className="flex justify-between mt-1.5 text-[10px]">
+          <span className={match.eloChangeA > 0 ? 'text-positive font-semibold' : 'text-danger'}>
             {match.eloChangeA > 0 ? '+' : ''}{match.eloChangeA} ELO
           </span>
-          <span className={match.eloChangeB > 0 ? 'text-green-600' : 'text-red-500'}>
+          <span className={match.eloChangeB > 0 ? 'text-positive font-semibold' : 'text-danger'}>
             {match.eloChangeB > 0 ? '+' : ''}{match.eloChangeB} ELO
           </span>
         </div>
@@ -101,7 +113,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -113,47 +125,67 @@ export default function Dashboard() {
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()) || [];
 
   const tabs = [
-    { key: 'today' as TabType, label: '今日赛程', count: todayMatches.length },
-    { key: 'past' as TabType, label: '往日赛果', count: pastMatches.length },
-    { key: 'upcoming' as TabType, label: '未来赛事', count: upcomingMatches.length },
+    { key: 'today' as TabType, label: '今日', count: todayMatches.length },
+    { key: 'past' as TabType, label: '往期', count: pastMatches.length },
+    { key: 'upcoming' as TabType, label: '预告', count: upcomingMatches.length },
   ];
 
   const displayMatches = tab === 'today' ? todayMatches : tab === 'past' ? pastMatches : upcomingMatches;
 
-  return (
-    <div className="max-w-5xl mx-auto px-4 py-6">
-      <div className="flex items-center gap-3 mb-2">
-        <CalendarDays className="w-6 h-6 text-primary" />
-        <h1 className="text-2xl font-bold text-gray-900">赛程中心</h1>
-      </div>
-      <p className="text-gray-500 text-sm mb-6">今日赛程、历史赛果与未来赛事一览</p>
+  // Live matches
+  const liveMatches = todayMatches.filter(m => m.status === 'live');
 
-      {/* Tab bar */}
-      <div className="flex gap-1 bg-white rounded-lg border border-gray-200 p-1 mb-6">
+  return (
+    <div className="max-w-4xl mx-auto px-4 py-5">
+      {/* Live bar */}
+      {liveMatches.length > 0 && (
+        <div className="bg-surface border border-danger/20 rounded-md px-3.5 py-2 mb-4 flex items-center gap-2 border-l-[3px] border-l-danger">
+          <span className="w-1.5 h-1.5 rounded-full bg-danger animate-pulse shrink-0" />
+          <span className="text-[11px] font-bold text-danger uppercase tracking-wide">LIVE</span>
+          <span className="text-xs text-muted ml-1">
+            {liveMatches.map(m => {
+              const a = teams?.find(t => t.id === m.teamAId);
+              const b = teams?.find(t => t.id === m.teamBId);
+              return `${a?.name || '?'} ${m.scoreA}:${m.scoreB} ${b?.name || '?'}`;
+            }).join('  ·  ')}
+          </span>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-sm font-bold text-text flex items-center gap-2 uppercase tracking-wider">
+          <CalendarDays className="w-4 h-4 text-accent" />
+          赛程中心
+        </h1>
+        <span className="text-[10px] text-muted">{matches?.length || 0} 场比赛</span>
+      </div>
+
+      {/* Tab pills */}
+      <div className="flex gap-1.5 mb-5">
         {tabs.map(({ key, label, count }) => (
           <button
             key={key}
             onClick={() => setTab(key)}
-            className={`flex-1 py-2 rounded-md text-sm font-medium transition-colors ${
+            className={`px-3.5 py-1.5 rounded-full text-[11px] font-semibold transition-colors ${
               tab === key
-                ? 'bg-primary text-white shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'bg-accent text-white'
+                : 'text-muted border border-border hover:text-text hover:border-muted'
             }`}
           >
-            {label} ({count})
+            {label} <span className="opacity-70 ml-0.5">{count}</span>
           </button>
         ))}
       </div>
 
       {/* Match list */}
-      <div className="space-y-3">
+      <div className="space-y-1.5">
         {displayMatches.map(m => (
           <MatchCard key={m.id} match={m} teams={teams || []} />
         ))}
         {displayMatches.length === 0 && (
-          <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
-            <CalendarDays className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-            <p className="text-gray-400">暂无比赛数据</p>
+          <div className="text-center py-16 bg-surface rounded-lg border border-border">
+            <CalendarDays className="w-10 h-10 mx-auto mb-2 text-border" />
+            <p className="text-muted text-sm">暂无比赛数据</p>
           </div>
         )}
       </div>

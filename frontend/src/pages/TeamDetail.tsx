@@ -56,171 +56,170 @@ export default function TeamDetail() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   if (!team) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-16 text-center text-gray-400">
-        <Users className="w-16 h-16 mx-auto mb-4 opacity-20" />
-        <p className="text-lg">战队未找到</p>
+      <div className="max-w-4xl mx-auto px-4 py-16 text-center text-muted">
+        <Users className="w-12 h-12 mx-auto mb-3 opacity-20" />
+        <p className="text-sm">战队未找到</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6">
-      <Link to="/teams" className="flex items-center gap-1 text-gray-400 hover:text-gray-600 text-sm mb-4 transition-colors">
-        <ChevronLeft className="w-4 h-4" /> 返回战队列表
+    <div className="max-w-5xl mx-auto px-4 py-5">
+      <Link to="/teams" className="inline-flex items-center gap-1 text-muted hover:text-text text-[11px] mb-4 transition-colors">
+        <ChevronLeft className="w-3.5 h-3.5" /> 返回战队列表
       </Link>
 
       {/* Header */}
-      <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6 shadow-sm">
-        <div className="flex items-center gap-5">
+      <div className="bg-surface border border-border rounded-lg p-5 mb-4">
+        <div className="flex items-center gap-4">
           {team.logo ? (
-            <img src={team.logo} alt="" className="w-20 h-20 rounded-full object-cover border-2 border-primary/20" />
+            <img src={team.logo} alt="" className="w-16 h-16 rounded-full object-cover border-2 border-border" />
           ) : (
-            <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
-              <span className="text-3xl font-bold text-primary">{team.tag?.charAt(0) || '?'}</span>
+            <div className="w-16 h-16 rounded-full bg-accent/15 flex items-center justify-center">
+              <span className="text-2xl font-bold text-accent">{team.tag?.charAt(0) || '?'}</span>
             </div>
           )}
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{team.name}</h1>
-            <p className="text-gray-500 text-sm">[{team.tag}]</p>
-            <div className="flex items-center gap-4 mt-2 text-sm">
-              <span className="text-primary font-bold text-lg">{team.elo} ELO</span>
-              <span className="text-gray-400">|</span>
-              <span className="text-gray-600">胜率 <strong>{winRate.toFixed(0)}%</strong></span>
-              <span className="text-gray-400">|</span>
-              <span className="text-gray-600">成立 {team.createdAt}</span>
+            <h1 className="text-xl font-bold text-text">{team.name}</h1>
+            <p className="text-muted text-xs">[{team.tag}]</p>
+            <div className="flex items-center gap-3 mt-1.5 text-xs">
+              <span className="text-accent font-bold text-sm">{team.elo} ELO</span>
+              <span className="text-border">|</span>
+              <span className="text-muted">胜率 <strong className="text-text">{winRate.toFixed(0)}%</strong></span>
+              <span className="text-border">|</span>
+              <span className="text-muted">成立 {team.createdAt}</span>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Main */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4">
           {/* Roster */}
-          <section className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-            <h2 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <Users className="w-5 h-5 text-primary" />
+          <section className="bg-surface border border-border rounded-lg p-4">
+            <h2 className="font-semibold text-text text-xs mb-3 flex items-center gap-2 uppercase tracking-wider">
+              <Users className="w-4 h-4 text-accent" />
               队员 ({members.length}/5)
             </h2>
             {coach && (
-              <div className="mb-3 flex items-center gap-3 p-2 bg-green-50 rounded-lg">
-                <Link to={`/players/${coach.id}`} className="flex items-center gap-2 hover:text-primary transition-colors">
+              <div className="mb-3 flex items-center gap-2 p-2 bg-positive/5 border border-positive/10 rounded">
+                <Link to={`/players/${coach.id}`} className="flex items-center gap-2 hover:text-accent transition-colors">
                   {coach.avatar ? (
-                    <img src={coach.avatar} alt="" className="w-8 h-8 rounded-full object-cover" />
+                    <img src={coach.avatar} alt="" className="w-7 h-7 rounded-full object-cover" />
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-sm font-bold">
+                    <div className="w-7 h-7 rounded-full bg-positive/15 flex items-center justify-center text-positive text-xs font-bold">
                       {coach.nickname.charAt(0)}
                     </div>
                   )}
                   <div>
-                    <span className="text-sm font-medium text-gray-900">{coach.nickname}</span>
-                    <span className="text-xs text-green-600 ml-1.5">教练</span>
+                    <span className="text-xs font-medium text-text">{coach.nickname}</span>
+                    <span className="text-[10px] text-positive ml-1.5">教练</span>
                   </div>
                 </Link>
               </div>
             )}
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               {members.map((m: any) => (
                 <Link
                   key={m.id}
                   to={`/players/${m.id}`}
-                  className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-50 transition-colors group"
+                  className="flex items-center gap-2.5 p-2 rounded hover:bg-[#1c2128] transition-colors group"
                 >
                   {m.avatar ? (
-                    <img src={m.avatar} alt="" className="w-9 h-9 rounded-full object-cover" />
+                    <img src={m.avatar} alt="" className="w-8 h-8 rounded-full object-cover" />
                   ) : (
-                    <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 text-sm font-bold">
+                    <div className="w-8 h-8 rounded-full bg-border flex items-center justify-center text-muted text-xs font-bold">
                       {m.nickname.charAt(0)}
                     </div>
                   )}
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900 group-hover:text-primary transition-colors">
+                    <p className="text-xs font-medium text-text group-hover:text-accent transition-colors">
                       {m.nickname}
                     </p>
-                    <p className="text-xs text-gray-400">{m.realName}</p>
+                    <p className="text-[10px] text-muted">{m.realName}</p>
                   </div>
                   <div className="text-right">
-                    <span className="text-sm font-bold text-gray-700">{m.avgRating.toFixed(2)}</span>
-                    <p className="text-[10px] text-gray-400">Rating</p>
+                    <span className="text-xs font-bold text-text">{m.avgRating.toFixed(2)}</span>
+                    <p className="text-[9px] text-muted">Rating</p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-primary transition-colors" />
+                  <ChevronRight className="w-3.5 h-3.5 text-border group-hover:text-accent transition-colors" />
                 </Link>
               ))}
             </div>
           </section>
 
           {/* Match History */}
-          <section className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-            <h2 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-primary" />
+          <section className="bg-surface border border-border rounded-lg p-4">
+            <h2 className="font-semibold text-text text-xs mb-3 flex items-center gap-2 uppercase tracking-wider">
+              <Calendar className="w-4 h-4 text-accent" />
               赛事历史
             </h2>
-            <div className="space-y-2">
+            <div className="space-y-1">
               {teamMatches.slice(0, 10).map(m => {
                 const opp = teams?.find(t => t.id === (m.teamAId === id ? m.teamBId : m.teamAId));
                 const isWin = (m.teamAId === id && m.scoreA > m.scoreB) || (m.teamBId === id && m.scoreB > m.scoreA);
                 const tournament = tournaments?.find(t => t.id === m.tournamentId);
                 const isFinished = m.status === 'finished';
                 return (
-                  <div key={m.id} className="flex items-center gap-3 p-3 rounded-lg border border-gray-100 hover:border-primary/20 transition-all">
-                    <span className={`w-2 h-2 rounded-full ${isFinished ? (isWin ? 'bg-green-500' : 'bg-red-400') : 'bg-blue-400'}`} />
-                    <span className="text-xs text-gray-400 w-20 shrink-0">
+                  <div key={m.id} className="flex items-center gap-3 p-2.5 rounded border border-border hover:border-accent/30 transition-all">
+                    <span className={`w-1.5 h-1.5 rounded-full ${isFinished ? (isWin ? 'bg-positive' : 'bg-danger') : 'bg-info'}`} />
+                    <span className="text-[10px] text-muted w-16 shrink-0">
                       {new Date(m.date).toLocaleDateString('zh-CN')}
                     </span>
-                    <span className="text-sm text-gray-700 flex-1">vs {opp?.name || 'Unknown'}</span>
+                    <span className="text-xs text-muted flex-1">vs {opp?.name || 'Unknown'}</span>
                     {isFinished ? (
-                      <span className={`text-sm font-bold font-mono ${isWin ? 'text-green-600' : 'text-red-500'}`}>
+                      <span className={`text-xs font-bold font-mono ${isWin ? 'text-positive' : 'text-danger'}`}>
                         {m.scoreA}:{m.scoreB}
                       </span>
                     ) : (
-                      <span className="text-xs text-blue-500 font-medium">
+                      <span className="text-[10px] text-info font-semibold">
                         {m.status === 'live' ? 'LIVE' : '即将'}
                       </span>
                     )}
-                    <span className="text-xs text-gray-400 hidden sm:inline truncate max-w-[120px]">
-                      {tournament ? <Link to={`/tournaments/${tournament.id}`} className="hover:text-primary hover:underline">{tournament.name}</Link> : ''}
+                    <span className="text-[10px] text-muted hidden sm:inline truncate max-w-[100px]">
+                      {tournament ? <Link to={`/tournaments/${tournament.id}`} className="hover:text-accent hover:underline">{tournament.name}</Link> : ''}
                     </span>
                   </div>
                 );
               })}
               {teamMatches.length === 0 && (
-                <p className="text-gray-400 text-sm py-4 text-center">暂无比赛记录</p>
+                <p className="text-muted text-xs py-4 text-center">暂无比赛记录</p>
               )}
             </div>
           </section>
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Achievements */}
-          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-            <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-yellow-500" />
+        <div className="space-y-4">
+          <div className="bg-surface border border-border rounded-lg p-4">
+            <h3 className="font-semibold text-text text-xs mb-3 flex items-center gap-2 uppercase tracking-wider">
+              <Trophy className="w-4 h-4 text-accent" />
               战队成就
             </h3>
             {achievements.length > 0 ? (
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {achievements.map((a: Achievement) => (
-                  <div key={a.id} className="flex items-center gap-3 p-2 rounded-lg bg-gray-50">
-                    <span className="text-xl">{placementIcon(a.placement)}</span>
+                  <div key={a.id} className="flex items-center gap-2 p-2 rounded bg-[#1c2128]">
+                    <span className="text-base">{placementIcon(a.placement)}</span>
                     <div>
-                      <p className="text-sm font-medium text-gray-900">
+                      <p className="text-xs font-medium text-text">
                         {a.placement} — {a.tournamentName}
                       </p>
-                      <p className="text-xs text-gray-400">{a.date}</p>
+                      <p className="text-[10px] text-muted">{a.date}</p>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-gray-400 text-sm py-2 text-center">暂无成就记录</p>
+              <p className="text-muted text-xs py-2 text-center">暂无成就记录</p>
             )}
           </div>
         </div>
