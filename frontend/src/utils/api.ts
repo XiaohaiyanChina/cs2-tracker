@@ -3,7 +3,11 @@ import { API_BASE } from './config';
 async function fetchJSON<T>(path: string): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`);
   if (!res.ok) throw new Error(`API error: ${res.status}`);
-  return res.json();
+  const data = await res.json();
+  if (data && typeof data === 'object' && !Array.isArray(data) && 'error' in data) {
+    throw new Error(String(data.error));
+  }
+  return data;
 }
 
 export const api = {

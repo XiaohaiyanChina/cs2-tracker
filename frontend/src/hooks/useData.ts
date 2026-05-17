@@ -11,9 +11,15 @@ function useFetch<T>(path: string) {
     let cancelled = false;
     setLoading(true);
     fetch(`${API_BASE}${path}`)
-      .then(r => r.json())
-      .then(d => { if (!cancelled) setData(d); })
-      .catch(console.error)
+      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+      .then(d => {
+        if (cancelled) return;
+        if (d && typeof d === 'object' && !Array.isArray(d) && 'error' in d) {
+          throw new Error(String(d.error));
+        }
+        setData(d);
+      })
+      .catch(err => { if (!cancelled) { console.error(`API ${path}:`, err.message); } })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [path, key]);
