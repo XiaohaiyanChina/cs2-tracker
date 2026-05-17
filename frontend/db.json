@@ -243,7 +243,7 @@
         "player_1778994691858"
       ],
       "coach": null,
-      "elo": 984,
+      "elo": 1000,
       "achievements": [],
       "createdAt": "2026-05-17"
     },
@@ -260,7 +260,7 @@
         "player_1778994552386"
       ],
       "coach": null,
-      "elo": 1016,
+      "elo": 1000,
       "achievements": [],
       "createdAt": "2026-05-17"
     }
@@ -280,26 +280,7 @@
       ]
     }
   ],
-  "matches": [
-    {
-      "id": "match_1778996361242",
-      "tournamentId": "tour_1778996082443",
-      "teamAId": "team_1778919358778",
-      "teamBId": "team_1778940016495",
-      "scoreA": 1,
-      "scoreB": 2,
-      "date": "2026-03-13T13:34:00.000Z",
-      "status": "finished",
-      "format": "bo3",
-      "mapIds": [
-        "mm_match_1778996361242_0",
-        "mm_match_1778996361242_1",
-        "mm_match_1778996361242_2"
-      ],
-      "eloChangeA": -16,
-      "eloChangeB": 16
-    }
-  ],
+  "matches": [],
   "matchMaps": [
     {
       "id": "mm_match_1778939330805_0",
@@ -361,33 +342,6 @@
       "mapName": "Inferno",
       "scoreA": 13,
       "scoreB": 10,
-      "pickTeam": null,
-      "order": 3
-    },
-    {
-      "id": "mm_match_1778996361242_0",
-      "matchId": "match_1778996361242",
-      "mapName": "Inferno",
-      "scoreA": 8,
-      "scoreB": 13,
-      "pickTeam": null,
-      "order": 1
-    },
-    {
-      "id": "mm_match_1778996361242_1",
-      "matchId": "match_1778996361242",
-      "mapName": "Ancient",
-      "scoreA": 13,
-      "scoreB": 7,
-      "pickTeam": null,
-      "order": 2
-    },
-    {
-      "id": "mm_match_1778996361242_2",
-      "matchId": "match_1778996361242",
-      "mapName": "Mirage",
-      "scoreA": 5,
-      "scoreB": 13,
       "pickTeam": null,
       "order": 3
     }
