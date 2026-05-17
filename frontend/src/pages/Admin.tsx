@@ -161,11 +161,11 @@ export default function Admin() {
         </div>
       )}
 
-      <div style={{ display: tab === 'tournaments' ? 'block' : 'none' }}><TournamentEditor onMsg={setMsg} /></div>
-      <div style={{ display: tab === 'teams' ? 'block' : 'none' }}><TeamEditor onMsg={setMsg} /></div>
-      <div style={{ display: tab === 'players' ? 'block' : 'none' }}><PlayerEditor onMsg={setMsg} /></div>
-      <div style={{ display: tab === 'matches' ? 'block' : 'none' }}><MatchEditor onMsg={setMsg} /></div>
-      <div style={{ display: tab === 'bracket' ? 'block' : 'none' }}><BracketEditor onMsg={setMsg} /></div>
+      <div style={{ display: tab === 'tournaments' ? 'block' : 'none' }}><TournamentEditor onMsg={onMsg} /></div>
+      <div style={{ display: tab === 'teams' ? 'block' : 'none' }}><TeamEditor onMsg={onMsg} /></div>
+      <div style={{ display: tab === 'players' ? 'block' : 'none' }}><PlayerEditor onMsg={onMsg} /></div>
+      <div style={{ display: tab === 'matches' ? 'block' : 'none' }}><MatchEditor onMsg={onMsg} /></div>
+      <div style={{ display: tab === 'bracket' ? 'block' : 'none' }}><BracketEditor onMsg={onMsg} /></div>
     </div>
   );
 }
