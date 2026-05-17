@@ -8,8 +8,10 @@
     "server": "cd server && npm run dev",
     "install:all": "cd frontend && npm install && cd ../server && npm install",
     "build": "cd frontend && npm run build",
-    "sync:db": "cp frontend/db.json server/db.json",
-    "deploy": "npm run sync:db && fly deploy"
+    "sync:db": "cp server/db.json frontend/db.json",
+    "sync:local": "cp frontend/db.json server/db.json",
+    "deploy": "npm run build && npm run sync:db && fly deploy",
+    "vercel-build": "cd frontend && npm install && npm run build"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

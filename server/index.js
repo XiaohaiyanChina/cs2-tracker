@@ -5,7 +5,7 @@ const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'db.json');
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, '..', 'frontend', 'db.json');
 const FRONTEND_DIR = path.join(__dirname, '..', 'frontend', 'dist');
 
 app.use(cors());

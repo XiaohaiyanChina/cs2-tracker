@@ -1,43 +1,51 @@
-// Vercel serverless API — all /api/* requests rewrite here
-// Parses the original URL to determine endpoint
-
-const fs = require('fs');
-const path = require('path');
+// Vercel serverless API — all /api/* requests rewrite here (ESM)
+import { readFileSync, existsSync } from 'fs';
+import { join } from 'path';
+import { Buffer } from 'buffer';
 
 const OWNER = process.env.GITHUB_REPO_OWNER || 'XiaohaiyanChina';
 const REPO = process.env.GITHUB_REPO_NAME || 'cs2-tracker';
 const BRANCH = process.env.GITHUB_REPO_BRANCH || 'master';
 const TOKEN = process.env.GITHUB_TOKEN || '';
 
-const LOCAL_DB = path.join(process.cwd(), 'server', 'db.json');
-const API_URL = `https://api.github.com/repos/${OWNER}/${REPO}/contents/frontend/db.json`;
+const DB_FILE = 'frontend/db.json';  // single source of truth for both read & write
+const LOCAL_DB = join(process.cwd(), DB_FILE);
+const RAW_URL = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${DB_FILE}`;
+const API_URL = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${DB_FILE}`;
 
 const COLLECTIONS = ['players', 'teams', 'tournaments', 'matches', 'matchMaps', 'matchStats', 'news'];
+const EMPTY_DB = { players: [], teams: [], tournaments: [], matches: [], matchMaps: [], matchStats: [], news: [] };
 
 let _cache = null;
 let _cacheTime = 0;
-
-const EMPTY_DB = { players: [], teams: [], tournaments: [], matches: [], matchMaps: [], matchStats: [], news: [] };
-
-const RAW_URL = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/server/db.json`;
 
 async function readDB() {
   const now = Date.now();
   if (_cache && (now - _cacheTime) < 30000) return _cache;
 
-  // 优先尝试本地文件（本地开发环境）
+  // Try local file first (local dev or deployment with db.json present)
   try {
-    if (fs.existsSync(LOCAL_DB)) {
-      const raw = fs.readFileSync(LOCAL_DB, 'utf-8');
+    if (existsSync(LOCAL_DB)) {
+      const raw = readFileSync(LOCAL_DB, 'utf-8');
       _cache = JSON.parse(raw);
       _cacheTime = now;
+      console.log(`[readDB] Loaded from local: ${LOCAL_DB}`);
+      return _cache;
+    }
+    // Fallback: try server/db.json for old deployments
+    const oldLocal = join(process.cwd(), 'server', 'db.json');
+    if (existsSync(oldLocal)) {
+      const raw = readFileSync(oldLocal, 'utf-8');
+      _cache = JSON.parse(raw);
+      _cacheTime = now;
+      console.log(`[readDB] Loaded from fallback local: ${oldLocal}`);
       return _cache;
     }
   } catch (e) {
-    console.error('本地读取失败，尝试从 GitHub 获取:', e.message);
+    console.error('[readDB] Local read failed, trying GitHub:', e.message);
   }
 
-  // 从 GitHub raw 获取（Vercel 线上环境）
+  // Fetch from GitHub raw
   try {
     const headers = { 'User-Agent': 'cs2-tracker' };
     if (TOKEN) headers['Authorization'] = `Bearer ${TOKEN}`;
@@ -45,57 +53,97 @@ async function readDB() {
     if (res.ok) {
       _cache = await res.json();
       _cacheTime = now;
+      console.log(`[readDB] Loaded from GitHub raw: ${RAW_URL}`);
       return _cache;
     }
-    console.error('GitHub raw 读取失败:', res.status);
+    console.error('[readDB] GitHub raw fetch failed:', res.status);
   } catch (e) {
-    console.error('GitHub raw 请求失败:', e.message);
+    console.error('[readDB] GitHub raw request failed:', e.message);
   }
 
-  return EMPTY_DB;
+  console.error('[readDB] All read sources failed, returning empty DB');
+  return JSON.parse(JSON.stringify(EMPTY_DB));
 }
 
 async function writeDB(data) {
+  const now = Date.now();
   _cache = data;
-  _cacheTime = Date.now();
+  _cacheTime = now;
 
-  if (!TOKEN) throw new Error('缺少 GITHUB_TOKEN 环境变量，无法保存数据。请在 Vercel 项目设置中添加 GITHUB_TOKEN');
+  if (!TOKEN) {
+    throw new Error('缺少 GITHUB_TOKEN 环境变量，无法保存数据。请在 Vercel 项目设置中添加 GITHUB_TOKEN');
+  }
 
-  const getRes = await fetch(API_URL, {
-    headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'cs2-tracker', 'Accept': 'application/vnd.github+json' },
-  }).catch(e => { throw new Error(`GitHub API 连接失败 (GET): ${e.message}`); });
+  // Get current SHA from GitHub
+  let getRes;
+  try {
+    getRes = await fetch(API_URL, {
+      headers: {
+        'Authorization': `Bearer ${TOKEN}`,
+        'User-Agent': 'cs2-tracker',
+        'Accept': 'application/vnd.github+json',
+      },
+    });
+  } catch (e) {
+    throw new Error(`GitHub API 连接失败 (GET): ${e.message}`);
+  }
 
   if (!getRes.ok) {
-    const body = await getRes.text().catch(() => '');
-    throw new Error(`GitHub 读取失败: ${getRes.status} — ${body.slice(0, 100)}`);
+    let body = '';
+    try { body = await getRes.text(); } catch {}
+    throw new Error(`GitHub 读取失败: ${getRes.status} — ${body.slice(0, 200)}`);
   }
-  const fileData = await getRes.json();
-  const sha = fileData.sha;
 
+  let sha;
+  try {
+    const fileData = await getRes.json();
+    sha = fileData.sha;
+  } catch (e) {
+    throw new Error(`GitHub 解析响应失败: ${e.message}`);
+  }
+
+  // Write back to GitHub
   const content = Buffer.from(JSON.stringify(data, null, 2)).toString('base64');
-  const putRes = await fetch(API_URL, {
-    method: 'PUT',
-    headers: {
-      'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'cs2-tracker',
-      'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ message: 'Update db.json', content, sha, branch: BRANCH }),
-  }).catch(e => { throw new Error(`GitHub API 连接失败 (PUT): ${e.message}`); });
+  let putRes;
+  try {
+    putRes = await fetch(API_URL, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${TOKEN}`,
+        'User-Agent': 'cs2-tracker',
+        'Accept': 'application/vnd.github+json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        message: 'Update db.json',
+        content,
+        sha,
+        branch: BRANCH,
+      }),
+    });
+  } catch (e) {
+    throw new Error(`GitHub API 连接失败 (PUT): ${e.message}`);
+  }
 
   if (!putRes.ok) {
-    const err = await putRes.text().catch(() => '{}');
-    let errMsg = err;
-    try { const j = JSON.parse(err); errMsg = j.message || err; } catch {}
-    throw new Error(`GitHub 写入失败: ${putRes.status} — ${errMsg.slice(0, 100)}`);
+    let errMsg = '';
+    try {
+      const err = await putRes.json();
+      errMsg = err.message || JSON.stringify(err);
+    } catch {
+      try { errMsg = await putRes.text(); } catch {}
+    }
+    throw new Error(`GitHub 写入失败: ${putRes.status} — ${errMsg.slice(0, 200)}`);
   }
+
+  console.log(`[writeDB] Successfully wrote to ${API_URL}`);
 }
 
-// Parse URL path like /api/players/p1 → parts ['api', 'players', 'p1']
+// Parse URL path like /api/players/p1 → collection=players, id=p1
 function parsePath(url) {
   const path = (url || '').split('?')[0];
-  const parts = path.split('/').filter(Boolean); // ['api', 'players'] or ['api', 'players', 'p1']
-  // First part should be 'api'
-  const afterApi = parts.slice(1); // ['players'] or ['players', 'p1']
+  const parts = path.split('/').filter(Boolean);
+  const afterApi = parts.slice(1);
 
   if (afterApi.length === 0) return { error: 'No endpoint' };
   const [first, second] = afterApi;
@@ -110,7 +158,8 @@ function parsePath(url) {
   return { error: 'Invalid path' };
 }
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
+  // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -118,11 +167,10 @@ module.exports = async function handler(req, res) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  // Use original URL (before rewrite) if available, otherwise use req.url
   const url = req.url || '';
   const parsed = parsePath(url);
 
-  // --- Special endpoints ---
+  // --- Status endpoint ---
   if (parsed.special === 'status') {
     try {
       const db = await readDB();
@@ -132,6 +180,7 @@ module.exports = async function handler(req, res) {
         owner: OWNER,
         repo: REPO,
         branch: BRANCH,
+        dbFile: DB_FILE,
         collections: COLLECTIONS.reduce((acc, c) => ({ ...acc, [c]: db[c]?.length || 0 }), {}),
       });
     } catch (e) {
@@ -139,6 +188,7 @@ module.exports = async function handler(req, res) {
     }
   }
 
+  // --- Export ---
   if (parsed.special === 'export') {
     if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
     try {
@@ -149,6 +199,7 @@ module.exports = async function handler(req, res) {
     }
   }
 
+  // --- Import ---
   if (parsed.special === 'import') {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
     try {
@@ -161,10 +212,11 @@ module.exports = async function handler(req, res) {
       COLLECTIONS.forEach(c => { counts[c] = db[c].length; });
       return res.json({ ok: true, counts });
     } catch (e) {
-      return res.status(500).json({ error: e.message });
+      return res.status(500).json({ error: `导入失败: ${e.message}` });
     }
   }
 
+  // --- Batch delete ---
   if (parsed.special === 'batch-delete') {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
     try {
@@ -180,9 +232,8 @@ module.exports = async function handler(req, res) {
       const before = db[collection].length;
       const idSet = new Set(ids);
 
-      // Handle cascading deletes
+      // Cascade deletes
       if (collection === 'matches') {
-        // Also delete related matchMaps and matchStats
         const mapIds = new Set();
         for (const m of db.matches) {
           if (idSet.has(m.id)) {
@@ -193,10 +244,31 @@ module.exports = async function handler(req, res) {
         db.matchStats = db.matchStats.filter(s => !mapIds.has(s.matchMapId));
       }
       if (collection === 'players') {
-        // Remove from teams
         for (const t of db.teams) {
           t.members = (t.members || []).filter(pid => !idSet.has(pid));
           if (idSet.has(t.coach || '')) t.coach = null;
+        }
+      }
+      // Cascade tournament delete: remove related matches
+      if (collection === 'tournaments') {
+        const matchIdsToDelete = new Set();
+        for (const m of db.matches) {
+          if (idSet.has(m.tournamentId)) matchIdsToDelete.add(m.id);
+        }
+        if (matchIdsToDelete.size > 0) {
+          const mapIds = new Set();
+          for (const m of db.matches) {
+            if (matchIdsToDelete.has(m.id)) {
+              m.mapIds?.forEach(mid => mapIds.add(mid));
+            }
+          }
+          db.matchMaps = db.matchMaps.filter(mm => !mapIds.has(mm.id));
+          db.matchStats = db.matchStats.filter(s => !mapIds.has(s.matchMapId));
+          db.matches = db.matches.filter(m => !matchIdsToDelete.has(m.id));
+        }
+        // Remove tournament from team achievements
+        for (const t of db.teams) {
+          t.achievements = (t.achievements || []).filter(a => !idSet.has(a.teamId));
         }
       }
 
@@ -206,7 +278,7 @@ module.exports = async function handler(req, res) {
       await writeDB(db);
       return res.json({ ok: true, deleted: before - after, total: after });
     } catch (e) {
-      return res.status(500).json({ error: e.message });
+      return res.status(500).json({ error: `批量删除失败: ${e.message}` });
     }
   }
 
@@ -238,7 +310,7 @@ module.exports = async function handler(req, res) {
       case 'PUT': {
         const db = await readDB();
         const idx = db[collection]?.findIndex(x => x.id === id);
-        if (idx === -1) return res.status(404).json({ error: 'Not found' });
+        if (!id || idx === -1) return res.status(404).json({ error: `Not found: ${collection}/${id}` });
         db[collection][idx] = { ...req.body, id };
         await writeDB(db);
         return res.json(db[collection][idx]);
@@ -246,7 +318,7 @@ module.exports = async function handler(req, res) {
       case 'DELETE': {
         const db = await readDB();
         const idx = db[collection]?.findIndex(x => x.id === id);
-        if (idx === -1) return res.status(404).json({ error: 'Not found' });
+        if (!id || idx === -1) return res.status(404).json({ error: `Not found: ${collection}/${id}` });
         db[collection].splice(idx, 1);
         await writeDB(db);
         return res.json({ ok: true });
@@ -255,6 +327,7 @@ module.exports = async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
   } catch (e) {
+    console.error(`[API] ${req.method} /api/${collection}${id ? '/' + id : ''} error:`, e);
     return res.status(500).json({ error: e.message });
   }
 }

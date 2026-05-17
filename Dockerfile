@@ -20,7 +20,7 @@ COPY server/index.js ./server/
 COPY server/entrypoint.sh ./server/
 
 # Seed data: copied to volume on first run
-COPY server/db.json ./seed/db.json
+COPY frontend/db.json ./seed/db.json
 
 # Ensure entrypoint is executable
 RUN chmod +x server/entrypoint.sh
