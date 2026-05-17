@@ -65,10 +65,8 @@ async function readDB() {
   return JSON.parse(JSON.stringify(EMPTY_DB));
 }
 
-async function writeDB(data) {
-  const now = Date.now();
-  _cache = data;
-  _cacheTime = now;
+async function writeDB(data, _retryCount = 0) {
+  const MAX_RETRIES = 3;
 
   if (!TOKEN) {
     throw new Error('缺少 GITHUB_TOKEN 环境变量，无法保存数据。请在 Vercel 项目设置中添加 GITHUB_TOKEN');
@@ -126,6 +124,14 @@ async function writeDB(data) {
   }
 
   if (!putRes.ok) {
+    // SHA conflict — retry with exponential backoff
+    if ((putRes.status === 409 || putRes.status === 422) && _retryCount < MAX_RETRIES) {
+      const delay = Math.pow(2, _retryCount) * 200;
+      console.log(`[writeDB] SHA conflict, retrying in ${delay}ms (attempt ${_retryCount + 1}/${MAX_RETRIES})`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      return writeDB(data, _retryCount + 1);
+    }
+
     let errMsg = '';
     try {
       const err = await putRes.json();
@@ -134,6 +140,31 @@ async function writeDB(data) {
       try { errMsg = await putRes.text(); } catch {}
     }
     throw new Error(`GitHub 写入失败: ${putRes.status} — ${errMsg.slice(0, 200)}`);
+  }
+
+  // Only update cache AFTER successful GitHub write (NOT before)
+  const now = Date.now();
+  _cache = data;
+  _cacheTime = now;
+
+  // Verify write via Contents API (bypasses CDN cache)
+  try {
+    const verifyRes = await fetch(API_URL, {
+      headers: {
+        'Authorization': `Bearer ${TOKEN}`,
+        'User-Agent': 'cs2-tracker',
+        'Accept': 'application/vnd.github+json',
+      },
+    });
+    if (verifyRes.ok) {
+      const verifyData = await verifyRes.json();
+      const decoded = JSON.parse(Buffer.from(verifyData.content, 'base64').toString('utf-8'));
+      _cache = decoded;
+      _cacheTime = Date.now();
+      console.log(`[writeDB] Verified via Contents API`);
+    }
+  } catch (e) {
+    console.warn('[writeDB] Verification failed (non-fatal):', e.message);
   }
 
   console.log(`[writeDB] Successfully wrote to ${API_URL}`);

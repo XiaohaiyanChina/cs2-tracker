@@ -10,7 +10,9 @@ function useFetch<T>(path: string) {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    fetch(`${API_BASE}${path}`)
+    fetch(`${API_BASE}${path}`, {
+      headers: { 'Cache-Control': 'no-cache' },
+    })
       .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then(d => {
         if (cancelled) return;

@@ -19,18 +19,35 @@ function Spinner() {
 }
 
 async function apiWrite(path: string, options?: RequestInit) {
-  const res = await fetch(`${API_BASE}${path}`, options);
-  if (!res.ok) {
-    let msg = `HTTP ${res.status}`;
+  const MAX_RETRIES = 2;
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     try {
-      const b = await res.json();
-      if (b && b.error) msg = b.error;
-    } catch {
-      try { const t = await res.text(); if (t) msg = t.slice(0, 200); } catch {}
+      const res = await fetch(`${API_BASE}${path}`, options);
+      if (!res.ok) {
+        let msg = `HTTP ${res.status}`;
+        try {
+          const b = await res.json();
+          if (b && b.error) msg = b.error;
+        } catch {
+          try { const t = await res.text(); if (t) msg = t.slice(0, 200); } catch {}
+        }
+        throw new Error(msg);
+      }
+      return res.json();
+    } catch (e: any) {
+      lastError = e;
+      // Retry on network errors (not HTTP 4xx/5xx)
+      if (attempt < MAX_RETRIES - 1 &&
+          (e.message.includes('Failed to fetch') || e.message.includes('NetworkError') || e.message.includes('连接失败'))) {
+        await new Promise(r => setTimeout(r, 500));
+        continue;
+      }
+      throw e;
     }
-    throw new Error(msg);
   }
-  return res.json();
+  throw lastError;
 }
 
 function BatchDeleteBar({ selected, onDelete, onClear }: { selected: string[]; onDelete: () => void; onClear: () => void }) {
