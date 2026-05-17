@@ -21,10 +21,11 @@ let _cacheTime = 0;
 
 async function readDB() {
   const now = Date.now();
-  if (_cache && (now - _cacheTime) < 30000) return _cache;
 
-  // On Vercel (TOKEN available): always read from GitHub to get latest data
-  // Local file is stale (committed version) and must be skipped
+  // On Vercel (TOKEN available): NEVER use local files or memory cache.
+  // Memory cache is per-instance and causes cross-instance staleness:
+  // Instance B's 20s-old cache doesn't see Instance A's just-written data.
+  // Always read from GitHub Contents API for absolute consistency.
   if (TOKEN) {
     // Fetch from GitHub Contents API first (bypasses CDN cache)
     try {
@@ -173,6 +174,47 @@ async function writeDB(data, _retryCount = 0) {
       const delay = Math.pow(2, _retryCount) * 200;
       console.log(`[writeDB] SHA conflict, retrying in ${delay}ms (attempt ${_retryCount + 1}/${MAX_RETRIES})`);
       await new Promise(resolve => setTimeout(resolve, delay));
+
+      // Re-read latest DB and merge with our changes before retrying.
+      // This prevents our retry from overwriting changes made by the
+      // conflicting write (e.g. another item added/deleted concurrently).
+      try {
+        const refetch = await fetch(API_URL, {
+          headers: {
+            'Authorization': `Bearer ${TOKEN}`,
+            'User-Agent': 'cs2-tracker',
+            'Accept': 'application/vnd.github+json',
+          },
+        });
+        if (refetch.ok) {
+          const latestFile = await refetch.json();
+          if (latestFile.content && latestFile.encoding === 'base64') {
+            const latestData = JSON.parse(Buffer.from(latestFile.content, 'base64').toString('utf-8'));
+            // Merge: keep all items from both versions (union by id).
+            // Our data takes precedence for items that exist in both.
+            const merged = { ...latestData };
+            for (const col of COLLECTIONS) {
+              const ourItems = data[col] || [];
+              const latestItems = latestData[col] || [];
+              const ourIds = new Set(ourItems.map(x => x.id));
+              // Start with our items (preserves our modifications)
+              const mergedCol = [...ourItems];
+              // Add items from latest that we don't have (preserves other changes)
+              for (const item of latestItems) {
+                if (!ourIds.has(item.id)) {
+                  mergedCol.push(item);
+                }
+              }
+              merged[col] = mergedCol;
+            }
+            console.log(`[writeDB] Merged with latest DB before retry`);
+            return writeDB(merged, _retryCount + 1);
+          }
+        }
+      } catch (e) {
+        console.warn('[writeDB] Failed to re-read on retry, using original data:', e.message);
+      }
+
       return writeDB(data, _retryCount + 1);
     }
 
