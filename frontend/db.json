@@ -460,6 +460,15 @@
       "scoreB": 7,
       "pickTeam": null,
       "order": 2
+    },
+    {
+      "id": "mm_match_1778997628249_2",
+      "matchId": "match_1778997628249",
+      "mapName": "Mirage",
+      "scoreA": 5,
+      "scoreB": 13,
+      "pickTeam": null,
+      "order": 3
     }
   ],
   "matchStats": [
