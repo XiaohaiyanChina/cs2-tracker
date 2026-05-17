@@ -51,8 +51,7 @@ export default function PlayerDetail() {
     const avgKPR = s.length > 0 ? s.reduce((sum, st) => sum + st.kpr, 0) / s.length : 0;
     const avgHS = s.length > 0 ? s.reduce((sum, st) => sum + st.headshotPercent, 0) / s.length : 0;
     const totalEntry = s.reduce((sum, st) => sum + st.entryKills, 0);
-    const totalClutches = s.reduce((sum, st) => sum + st.clutches, 0);
-    return { totalKills, totalDeaths, avgRating, avgADR, avgKPR, avgHS, totalEntry, totalClutches, count: s.length };
+    return { totalKills, totalDeaths, avgRating, avgADR, avgKPR, avgHS, totalEntry, count: s.length };
   }, [playerStats]);
 
   const radarData = useMemo(() => {
@@ -325,7 +324,6 @@ export default function PlayerDetail() {
               <div className="flex justify-between"><span className="text-muted">KD Ratio</span><span className="font-mono font-bold text-text">{aggregate.totalDeaths > 0 ? (aggregate.totalKills / aggregate.totalDeaths).toFixed(2) : '-'}</span></div>
               <div className="flex justify-between"><span className="text-muted">HS%</span><span className="font-mono font-bold text-text">{aggregate.avgHS.toFixed(0)}%</span></div>
               <div className="flex justify-between"><span className="text-muted">首杀</span><span className="font-mono font-bold text-text">{aggregate.totalEntry}</span></div>
-              <div className="flex justify-between"><span className="text-muted">残局</span><span className="font-mono font-bold text-text">{aggregate.totalClutches}</span></div>
               <div className="flex justify-between border-t border-border pt-2"><span className="text-muted">总地图数</span><span className="font-mono font-bold text-text">{aggregate.count}</span></div>
             </div>
           </div>

@@ -820,7 +820,7 @@ function MatchEditor({ onMsg }: { onMsg: (m: string | { text: string; type: 'suc
   // Stats editing state
   const [expandMatchId, setExpandMatchId] = useState<string | null>(null);
   const [expandMapId, setExpandMapId] = useState<string | null>(null);
-  const [editingStat, setEditingStat] = useState<{ matchMapId: string; playerId: string; kills: string; deaths: string; assists: string; adr: string; rating: string; kpr: string; hs: string; entry: string; clutches: string } | null>(null);
+  const [editingStat, setEditingStat] = useState<{ matchMapId: string; playerId: string; kills: string; deaths: string; assists: string; adr: string; rating: string; kpr: string; hs: string; entry: string } | null>(null);
   const [editingMap, setEditingMap] = useState<{ id: string; mapName: string; scoreA: string; scoreB: string } | null>(null);
 
   const mapOptions = ['Mirage', 'Inferno', 'Nuke', 'Ancient', 'Anubis', 'Vertigo', 'Dust2', 'Overpass', 'Train'];
@@ -926,7 +926,6 @@ function MatchEditor({ onMsg }: { onMsg: (m: string | { text: string; type: 'suc
         kpr: parseFloat(editingStat.kpr) || 0,
         headshotPercent: parseInt(editingStat.hs) || 0,
         entryKills: parseInt(editingStat.entry) || 0,
-        clutches: parseInt(editingStat.clutches) || 0,
       };
       await apiWrite('/matchStats', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
@@ -1009,7 +1008,7 @@ function MatchEditor({ onMsg }: { onMsg: (m: string | { text: string; type: 'suc
   };
 
   const startAddStat = (mapId: string) => {
-    setEditingStat({ matchMapId: mapId, playerId: '', kills: '', deaths: '', assists: '', adr: '', rating: '', kpr: '', hs: '', entry: '', clutches: '' });
+    setEditingStat({ matchMapId: mapId, playerId: '', kills: '', deaths: '', assists: '', adr: '', rating: '', kpr: '', hs: '', entry: '' });
   };
 
   return (
@@ -1168,7 +1167,6 @@ function MatchEditor({ onMsg }: { onMsg: (m: string | { text: string; type: 'suc
                                         <th className="text-center px-1.5 py-1.5 text-muted font-medium">Rating</th>
                                         <th className="text-center px-1.5 py-1.5 text-muted font-medium">HS%</th>
                                         <th className="text-center px-1.5 py-1.5 text-muted font-medium">首杀</th>
-                                        <th className="text-center px-1.5 py-1.5 text-muted font-medium">残局</th>
                                         <th className="w-8"></th>
                                       </tr>
                                     </thead>
@@ -1185,7 +1183,6 @@ function MatchEditor({ onMsg }: { onMsg: (m: string | { text: string; type: 'suc
                                             <td className={`text-center px-1.5 py-1.5 font-mono font-bold ${s.rating >= 1.2 ? 'text-positive' : s.rating < 0.9 ? 'text-danger' : 'text-text'}`}>{s.rating.toFixed(2)}</td>
                                             <td className="text-center px-1.5 py-1.5 text-muted font-mono">{s.headshotPercent}%</td>
                                             <td className="text-center px-1.5 py-1.5 text-text font-mono">{s.entryKills}</td>
-                                            <td className="text-center px-1.5 py-1.5 text-text font-mono">{s.clutches}</td>
                                             <td><button onClick={() => deleteStat(s.id)} className="text-danger/70 hover:text-danger"><X className="w-3 h-3" /></button></td>
                                           </tr>
                                         );
@@ -1216,7 +1213,6 @@ function MatchEditor({ onMsg }: { onMsg: (m: string | { text: string; type: 'suc
                                       <input placeholder="KPR" value={editingStat.kpr} onChange={e => setEditingStat({ ...editingStat, kpr: e.target.value })} className="border border-border rounded px-2 py-1 text-xs w-full" type="number" step="0.01" />
                                       <input placeholder="HS%" value={editingStat.hs} onChange={e => setEditingStat({ ...editingStat, hs: e.target.value })} className="border border-border rounded px-2 py-1 text-xs w-full" type="number" />
                                       <input placeholder="首杀" value={editingStat.entry} onChange={e => setEditingStat({ ...editingStat, entry: e.target.value })} className="border border-border rounded px-2 py-1 text-xs w-full" type="number" />
-                                      <input placeholder="残局" value={editingStat.clutches} onChange={e => setEditingStat({ ...editingStat, clutches: e.target.value })} className="border border-border rounded px-2 py-1 text-xs w-full" type="number" />
                                     </div>
                                     <div className="flex gap-2 mt-2">
                                       <button onClick={saveStat} className="px-3 py-1 bg-accent text-white rounded text-xs">保存</button>

@@ -13,7 +13,6 @@ const STAT_COLS = [
   { key: 'rating', label: 'Rating', color: '' },
   { key: 'hs', label: 'HS%', color: 'text-muted' },
   { key: 'entry', label: '首杀', color: 'text-muted' },
-  { key: 'clutches', label: '残局', color: 'text-muted' },
 ];
 
 function SideBySideStats({ stats, players, teams, match, showMaps }: { stats: any[], players: any, teams: any, match: any, showMaps?: boolean }) {
@@ -39,7 +38,6 @@ function SideBySideStats({ stats, players, teams, match, showMaps }: { stats: an
       case 'rating': return (s.rating ?? 0).toFixed(2);
       case 'hs': return `${((s.headshotPercent ?? s.hs) ?? 0).toFixed(0)}%`;
       case 'entry': return s.entryKills ?? s.entry ?? 0;
-      case 'clutches': return s.clutches ?? 0;
       default: return '';
     }
   }
@@ -167,7 +165,6 @@ export default function MatchDetail() {
       rating: stats.reduce((a, s) => a + s.rating, 0) / stats.length,
       headshotPercent: stats.reduce((a, s) => a + s.headshotPercent, 0) / stats.length,
       entryKills: stats.reduce((a, s) => a + s.entryKills, 0),
-      clutches: stats.reduce((a, s) => a + s.clutches, 0),
       maps: stats.length,
     })).sort((a, b) => b.rating - a.rating);
   }, [mapStats]);

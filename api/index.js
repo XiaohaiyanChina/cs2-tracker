@@ -45,7 +45,32 @@ async function readDB() {
     console.error('[readDB] Local read failed, trying GitHub:', e.message);
   }
 
-  // Fetch from GitHub raw
+  // Fetch from GitHub Contents API (bypasses CDN cache) when token available
+  if (TOKEN) {
+    try {
+      const apiHeaders = {
+        'Authorization': `Bearer ${TOKEN}`,
+        'User-Agent': 'cs2-tracker',
+        'Accept': 'application/vnd.github+json',
+      };
+      const res = await fetch(API_URL, { headers: apiHeaders });
+      if (res.ok) {
+        const fileData = await res.json();
+        if (fileData.content && fileData.encoding === 'base64') {
+          const decoded = Buffer.from(fileData.content, 'base64').toString('utf-8');
+          _cache = JSON.parse(decoded);
+          _cacheTime = now;
+          console.log(`[readDB] Loaded from GitHub Contents API`);
+          return _cache;
+        }
+      }
+      console.error('[readDB] GitHub Contents API fetch failed:', res.status);
+    } catch (e) {
+      console.error('[readDB] GitHub Contents API request failed:', e.message);
+    }
+  }
+
+  // Fallback: GitHub raw URL (may have CDN cache delay)
   try {
     const headers = { 'User-Agent': 'cs2-tracker' };
     if (TOKEN) headers['Authorization'] = `Bearer ${TOKEN}`;
