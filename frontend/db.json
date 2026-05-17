@@ -511,6 +511,19 @@
       "kpr": 2,
       "headshotPercent": 99,
       "entryKills": 32
+    },
+    {
+      "id": "stat_1778999895765",
+      "matchMapId": "mm_match_1778997628249_0",
+      "playerId": "player_1778957260982",
+      "kills": 123,
+      "deaths": 123,
+      "assists": 123,
+      "adr": 123,
+      "rating": 123,
+      "kpr": 123,
+      "headshotPercent": 123,
+      "entryKills": 123
     }
   ],
   "news": [
