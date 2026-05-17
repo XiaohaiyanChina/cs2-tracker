@@ -411,6 +411,15 @@
       "scoreB": 13,
       "pickTeam": null,
       "order": 1
+    },
+    {
+      "id": "mm_match_1778996305288_1",
+      "matchId": "match_1778996305288",
+      "mapName": "Ancient",
+      "scoreA": 13,
+      "scoreB": 7,
+      "pickTeam": null,
+      "order": 2
     }
   ],
   "matchStats": [
