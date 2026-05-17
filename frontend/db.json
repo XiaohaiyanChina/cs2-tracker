@@ -500,16 +500,16 @@
       "entryKills": 2
     },
     {
-      "id": "stat_1778999592685",
+      "id": "stat_1778999658698",
       "matchMapId": "mm_match_1778997628249_0",
-      "playerId": "player_1778957093574",
-      "kills": 23,
-      "deaths": 14,
-      "assists": 6,
-      "adr": 115,
-      "rating": 1.26,
-      "kpr": 1.1,
-      "headshotPercent": 48,
+      "playerId": "player_1778994304354",
+      "kills": 11,
+      "deaths": 13,
+      "assists": 8,
+      "adr": 76,
+      "rating": 0.79,
+      "kpr": 0.52,
+      "headshotPercent": 45,
       "entryKills": 3
     }
   ],
